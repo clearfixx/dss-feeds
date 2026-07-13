@@ -18,6 +18,11 @@ production.
 - Payload plugin registration;
 - authenticated settings global;
 - internal snapshot collection with denied external writes;
+- synchronization service with atomic snapshot replacement;
+- deterministic SHA-256 content checksum;
+- fresh, stale, and next-sync timestamps;
+- structured operational log callbacks;
+- failed provider requests leave the previous snapshot untouched;
 - no dependency on third-party social-feed plugins.
 
 ## Payload registration
@@ -40,6 +45,17 @@ dss-github-feed-settings
 dss-github-feed-cache
 ```
 
-The cache collection is hidden from normal admin navigation. Runtime writes
-will be performed only by the package's trusted Payload job through the Local
-API in the next vertical slice.
+## Manual server-side synchronization
+
+```ts
+import { synchronizeGitHubFeed } from '@dss-feeds/github-feed/payload'
+
+await synchronizeGitHubFeed({
+  payload,
+  token: process.env.DSS_GITHUB_TOKEN,
+})
+```
+
+The provider request completes and validates before the active cache document
+is created or replaced. A failed request never clears the last successful
+snapshot.
