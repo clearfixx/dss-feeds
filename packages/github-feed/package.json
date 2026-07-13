@@ -12,11 +12,21 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./payload": {
+      "types": "./dist/payload/index.d.ts",
+      "import": "./dist/payload/index.js"
     }
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "payload": ">=3.85.0 <4"
+  },
+  "devDependencies": {
+    "payload": "3.85.2"
   },
   "engines": {
     "node": ">=20.9.0"
