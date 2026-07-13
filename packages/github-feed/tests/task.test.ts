@@ -122,20 +122,20 @@ describe(
       }),
     }
 
-    const baseConfig: Config = {
+    const baseConfig = {
       secret: 'test-secret',
       collections: [],
       globals: [],
       jobs: {
         tasks: [existingTask],
       },
-    }
+    } as unknown as Config
 
     it(
       'preserves existing jobs and enables concurrency control',
-      () => {
+      async () => {
         const result =
-          githubFeedPlugin()(
+          await githubFeedPlugin()(
             baseConfig,
           )
 
@@ -156,9 +156,9 @@ describe(
 
     it(
       'disables only the recurring schedule when the plugin is disabled',
-      () => {
+      async () => {
         const result =
-          githubFeedPlugin({
+          await githubFeedPlugin({
             disabled: true,
           })(baseConfig)
         const task =
@@ -178,7 +178,7 @@ describe(
     it(
       'fails early when another task already owns the slug',
       () => {
-        const collisionConfig: Config = {
+        const collisionConfig = {
           ...baseConfig,
           jobs: {
             tasks: [
@@ -194,7 +194,7 @@ describe(
               },
             ],
           },
-        }
+        } as unknown as Config
 
         expect(() =>
           githubFeedPlugin()(

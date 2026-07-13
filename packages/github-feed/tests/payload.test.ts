@@ -11,7 +11,7 @@ import {
   isAuthenticatedPayloadRequest,
 } from '../src/payload/access.js'
 
-const baseConfig: Config = {
+const baseConfig = {
   secret: 'test-secret',
   collections: [
     {
@@ -26,39 +26,49 @@ const baseConfig: Config = {
       fields: [],
     },
   ],
-}
+} as unknown as Config
 
 describe('githubFeedPlugin', () => {
-  it('preserves existing config and appends owned Payload schemas', () => {
-    const result = githubFeedPlugin()(baseConfig)
+  it('preserves existing config and appends owned Payload schemas', async () => {
+    const result = await githubFeedPlugin()(
+      baseConfig,
+    )
 
-    expect(result.collections?.map(({ slug }) => slug)).toEqual([
+    expect(
+      result.collections?.map(({ slug }) => slug),
+    ).toEqual([
       'users',
       'dss-github-feed-cache',
     ])
-    expect(result.globals?.map(({ slug }) => slug)).toEqual([
+    expect(
+      result.globals?.map(({ slug }) => slug),
+    ).toEqual([
       'site-settings',
       'dss-github-feed-settings',
     ])
   })
 
-  it('supports custom slugs and admin grouping', () => {
-    const result = githubFeedPlugin({
+  it('supports custom slugs and admin grouping', async () => {
+    const result = await githubFeedPlugin({
       settingsSlug: 'github-settings',
       cacheSlug: 'github-cache',
       adminGroup: 'Activity',
     })(baseConfig)
 
     const settings = result.globals?.find(
-      ({ slug }) => slug === 'github-settings',
+      ({ slug }) =>
+        slug === 'github-settings',
     )
 
     expect(
       result.collections?.some(
-        ({ slug }) => slug === 'github-cache',
+        ({ slug }) =>
+          slug === 'github-cache',
       ),
     ).toBe(true)
-    expect(settings?.admin?.group).toBe('Activity')
+    expect(settings?.admin?.group).toBe(
+      'Activity',
+    )
   })
 
   it('fails early on schema slug collisions', () => {
@@ -101,7 +111,9 @@ describe('Payload schema factories', () => {
       slug: 'github-cache',
     })
     const keyField = cache.fields.find(
-      (field) => 'name' in field && field.name === 'key',
+      (field) =>
+        'name' in field &&
+        field.name === 'key',
     )
 
     expect(cache.admin?.hidden).toBe(true)
@@ -114,29 +126,45 @@ describe('Payload schema factories', () => {
   })
 
   it('uses safe synchronization defaults', () => {
-    const settings = createGitHubFeedSettings({
-      slug: 'github-settings',
-      adminGroup: 'Activity',
-    })
+    const settings =
+      createGitHubFeedSettings({
+        slug: 'github-settings',
+        adminGroup: 'Activity',
+      })
     const fields = new Map(
       settings.fields
-        .filter((field) => 'name' in field)
-        .map((field) => [field.name, field]),
+        .filter(
+          (field) => 'name' in field,
+        )
+        .map((field) => [
+          field.name,
+          field,
+        ]),
     )
 
-    expect(fields.get('enabled')).toMatchObject({
+    expect(
+      fields.get('enabled'),
+    ).toMatchObject({
       defaultValue: false,
     })
-    expect(fields.get('commitLimit')).toMatchObject({
+    expect(
+      fields.get('commitLimit'),
+    ).toMatchObject({
       defaultValue: 10,
     })
-    expect(fields.get('syncIntervalHours')).toMatchObject({
+    expect(
+      fields.get('syncIntervalHours'),
+    ).toMatchObject({
       defaultValue: 1,
     })
-    expect(fields.get('freshForMinutes')).toMatchObject({
+    expect(
+      fields.get('freshForMinutes'),
+    ).toMatchObject({
       defaultValue: 90,
     })
-    expect(fields.get('staleForHours')).toMatchObject({
+    expect(
+      fields.get('staleForHours'),
+    ).toMatchObject({
       defaultValue: 24,
     })
   })

@@ -7,6 +7,10 @@ export {
   type CreateGitHubFeedCacheOptions,
 } from './cache.js'
 export {
+  createGitHubFeedSyncEndpoint,
+  type CreateGitHubFeedSyncEndpointOptions,
+} from './endpoint.js'
+export {
   createGitHubFeedSettings,
   type CreateGitHubFeedSettingsOptions,
 } from './settings.js'

@@ -6,6 +6,7 @@ import type {
 } from 'payload'
 
 import { createGitHubFeedCache } from './cache.js'
+import { createGitHubFeedSyncEndpoint } from './endpoint.js'
 import { createGitHubFeedSettings } from './settings.js'
 import {
   createGitHubFeedSyncTask,
@@ -14,10 +15,13 @@ import {
   DEFAULT_GITHUB_FEED_TASK_SLUG,
 } from './task.js'
 
+type PayloadEndpoint =
+  NonNullable<Config['endpoints']>[number]
+
 export interface GitHubFeedPluginOptions {
   /**
-   * Keep schemas and the task registered while disabling its recurring
-   * schedule. Manual jobs can still be queued.
+   * Keep schemas, task, and endpoint registered while disabling the
+   * recurring schedule. Manual jobs can still be queued.
    */
   disabled?: boolean
 
@@ -57,9 +61,20 @@ export interface GitHubFeedPluginOptions {
   scheduleCron?: string
 
   /**
-   * Server environment variable containing an optional GitHub token.
+   * Server environment variable containing an optional GitHub API token.
    */
   tokenEnvironmentVariable?: string
+
+  /**
+   * Protected top-level Payload endpoint path.
+   */
+  syncEndpointPath?: string
+
+  /**
+   * Optional environment variable accepted as a bearer token by the
+   * synchronization endpoint.
+   */
+  syncSecretEnvironmentVariable?: string
 }
 
 const DEFAULT_SETTINGS_SLUG =
@@ -77,10 +92,14 @@ export const githubFeedPlugin =
       options.settingsSlug ??
       DEFAULT_SETTINGS_SLUG
     const cacheSlug =
-      options.cacheSlug ?? DEFAULT_CACHE_SLUG
+      options.cacheSlug ??
+      DEFAULT_CACHE_SLUG
     const taskSlug =
       options.taskSlug ??
       DEFAULT_GITHUB_FEED_TASK_SLUG
+    const queue =
+      options.queue ??
+      DEFAULT_GITHUB_FEED_QUEUE
 
     const settings =
       createGitHubFeedSettings({
@@ -94,9 +113,7 @@ export const githubFeedPlugin =
     })
     const task = createGitHubFeedSyncTask({
       taskSlug,
-      queue:
-        options.queue ??
-        DEFAULT_GITHUB_FEED_QUEUE,
+      queue,
       scheduleCron:
         options.scheduleCron ??
         DEFAULT_GITHUB_FEED_SCHEDULE,
@@ -108,6 +125,16 @@ export const githubFeedPlugin =
       cacheSlug,
       cacheKey: options.cacheKey,
     })
+    const endpoint =
+      createGitHubFeedSyncEndpoint({
+        path:
+          options.syncEndpointPath ??
+          '/dss-github-feed/sync',
+        taskSlug,
+        queue,
+        syncSecretEnvironmentVariable:
+          options.syncSecretEnvironmentVariable,
+      })
 
     assertSlugAvailable(
       config.globals ?? [],
@@ -124,6 +151,10 @@ export const githubFeedPlugin =
       config.jobs?.workflows ?? [],
       task.slug,
     )
+    assertEndpointAvailable(
+      config.endpoints ?? [],
+      endpoint,
+    )
 
     return {
       ...config,
@@ -134,6 +165,10 @@ export const githubFeedPlugin =
       collections: [
         ...(config.collections ?? []),
         cache,
+      ],
+      endpoints: [
+        ...(config.endpoints ?? []),
+        endpoint,
       ],
       jobs: {
         ...config.jobs,
@@ -181,6 +216,23 @@ function assertJobSlugAvailable(
   ) {
     throw new Error(
       `DSS GitHub Feed cannot register task "${slug}" because that job slug already exists.`,
+    )
+  }
+}
+
+function assertEndpointAvailable(
+  endpoints: readonly PayloadEndpoint[],
+  candidate: PayloadEndpoint,
+): void {
+  if (
+    endpoints.some(
+      (endpoint) =>
+        endpoint.path === candidate.path &&
+        endpoint.method === candidate.method,
+    )
+  ) {
+    throw new Error(
+      `DSS GitHub Feed cannot register ${candidate.method.toUpperCase()} endpoint "${candidate.path}" because that route already exists.`,
     )
   }
 }
