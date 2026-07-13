@@ -25,7 +25,7 @@ export interface GitHubFeedSyncLogEntry {
 
 export interface GitHubFeedSyncResult {
   status: 'success' | 'skipped'
-  reason?: 'disabled'
+  reason?: 'disabled' | 'not_due'
   cacheKey: string
   created: boolean
   changed: boolean
@@ -43,6 +43,7 @@ export interface SynchronizeGitHubFeedOptions {
   fetch?: typeof globalThis.fetch
   signal?: AbortSignal
   now?: Date
+  force?: boolean
   cacheKey?: string
   settingsSlug?: string
   cacheSlug?: string
@@ -64,6 +65,11 @@ interface GitHubFeedSettingsData {
 interface PayloadDocument {
   id: string | number
   checksum?: unknown
+  commits?: unknown
+  generatedAt?: unknown
+  freshUntil?: unknown
+  staleUntil?: unknown
+  nextSyncAt?: unknown
 }
 
 interface PayloadFindResult {
@@ -120,9 +126,15 @@ export async function synchronizeGitHubFeed(
     options.settingsSlug ?? DEFAULT_SETTINGS_SLUG
   const cacheSlug = options.cacheSlug ?? DEFAULT_CACHE_SLUG
   const cacheKey = options.cacheKey ?? DEFAULT_CACHE_KEY
-  const payload = options.payload as unknown as GitHubFeedPayloadClient
+  const payload =
+    options.payload as unknown as GitHubFeedPayloadClient
 
-  await writeLog(options, now, 'info', 'Loading GitHub feed settings.')
+  await writeLog(
+    options,
+    now,
+    'info',
+    'Loading GitHub feed settings.',
+  )
 
   const rawSettings = await payload.findGlobal({
     slug: settingsSlug,
@@ -150,6 +162,62 @@ export async function synchronizeGitHubFeed(
       freshUntil: null,
       staleUntil: null,
       nextSyncAt: null,
+    }
+  }
+
+  const existing = await payload.find({
+    collection: cacheSlug,
+    where: {
+      key: {
+        equals: cacheKey,
+      },
+    },
+    limit: 1,
+    depth: 0,
+    pagination: false,
+    overrideAccess: true,
+  })
+  const existingSnapshot = existing.docs[0]
+
+  if (
+    options.force !== true &&
+    existingSnapshot &&
+    isFutureTimestamp(existingSnapshot.nextSyncAt, now)
+  ) {
+    await writeLog(
+      options,
+      now,
+      'info',
+      'GitHub feed synchronization is not due yet.',
+      {
+        nextSyncAt: existingSnapshot.nextSyncAt,
+      },
+    )
+
+    return {
+      status: 'skipped',
+      reason: 'not_due',
+      cacheKey,
+      created: false,
+      changed: false,
+      commitCount: readArrayLength(
+        existingSnapshot.commits,
+      ),
+      checksum: readOptionalString(
+        existingSnapshot.checksum,
+      ),
+      generatedAt: readOptionalString(
+        existingSnapshot.generatedAt,
+      ),
+      freshUntil: readOptionalString(
+        existingSnapshot.freshUntil,
+      ),
+      staleUntil: readOptionalString(
+        existingSnapshot.staleUntil,
+      ),
+      nextSyncAt: readOptionalString(
+        existingSnapshot.nextSyncAt,
+      ),
     }
   }
 
@@ -183,7 +251,7 @@ export async function synchronizeGitHubFeed(
   } catch (error) {
     await writeLog(
       options,
-      new Date(),
+      now,
       'error',
       'GitHub synchronization failed before the cache was modified.',
       {
@@ -221,27 +289,17 @@ export async function synchronizeGitHubFeed(
     )
   }
 
-  const existing = await payload.find({
-    collection: cacheSlug,
-    where: {
-      key: {
-        equals: cacheKey,
-      },
-    },
-    limit: 1,
-    depth: 0,
-    pagination: false,
-    overrideAccess: true,
-  })
-  const existingSnapshot = existing.docs[0]
-  const changed = existingSnapshot?.checksum !== checksum
+  const changed =
+    existingSnapshot?.checksum !== checksum
 
   const snapshotData = {
     key: cacheKey,
     username: settings.username,
-    repositories: settings.repositories.map((repository) => ({
-      repository,
-    })),
+    repositories: settings.repositories.map(
+      (repository) => ({
+        repository,
+      }),
+    ),
     commits: commits.map(toPayloadCommit),
     checksum,
     adapterVersion: GITHUB_FEED_ADAPTER_VERSION,
@@ -322,9 +380,13 @@ export function createCommitChecksum(
     .digest('hex')
 }
 
-function parseSettings(value: unknown): GitHubFeedSettingsData {
+function parseSettings(
+  value: unknown,
+): GitHubFeedSettingsData {
   if (!isRecord(value)) {
-    throw invalidSettings('GitHub feed settings are unavailable.')
+    throw invalidSettings(
+      'GitHub feed settings are unavailable.',
+    )
   }
 
   const enabled = value.enabled === true
@@ -345,7 +407,9 @@ function parseSettings(value: unknown): GitHubFeedSettingsData {
     value.username,
     'GitHub username is required.',
   )
-  const repositories = readRepositories(value.repositories)
+  const repositories = readRepositories(
+    value.repositories,
+  )
 
   return {
     enabled: true,
@@ -418,9 +482,10 @@ function readInteger(
   maximum: number,
   label: string,
 ): number {
-  const resolved = value === undefined || value === null
-    ? fallback
-    : value
+  const resolved =
+    value === undefined || value === null
+      ? fallback
+      : value
 
   if (
     typeof resolved !== 'number' ||
@@ -436,18 +501,52 @@ function readInteger(
   return resolved
 }
 
+function readArrayLength(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0
+}
+
+function readOptionalString(
+  value: unknown,
+): string | null {
+  return typeof value === 'string' &&
+    value.length > 0
+    ? value
+    : null
+}
+
+function isFutureTimestamp(
+  value: unknown,
+  now: Date,
+): boolean {
+  if (typeof value !== 'string') {
+    return false
+  }
+
+  const timestamp = Date.parse(value)
+
+  return (
+    !Number.isNaN(timestamp) &&
+    timestamp > now.getTime()
+  )
+}
+
 function readRequiredString(
   value: unknown,
   message: string,
 ): string {
-  if (typeof value !== 'string' || value.trim().length === 0) {
+  if (
+    typeof value !== 'string' ||
+    value.trim().length === 0
+  ) {
     throw invalidSettings(message)
   }
 
   return value.trim()
 }
 
-function invalidSettings(message: string): GitHubFeedError {
+function invalidSettings(
+  message: string,
+): GitHubFeedError {
   return new GitHubFeedError(
     'INVALID_CONFIGURATION',
     message,
@@ -475,11 +574,16 @@ function toPayloadCommit(
   }
 }
 
-function addMilliseconds(date: Date, milliseconds: number): Date {
+function addMilliseconds(
+  date: Date,
+  milliseconds: number,
+): Date {
   return new Date(date.getTime() + milliseconds)
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(
+  value: unknown,
+): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 

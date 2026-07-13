@@ -19,3 +19,10 @@ export {
   type GitHubFeedSyncResult,
   type SynchronizeGitHubFeedOptions,
 } from './sync.js'
+export {
+  createGitHubFeedSyncTask,
+  DEFAULT_GITHUB_FEED_QUEUE,
+  DEFAULT_GITHUB_FEED_SCHEDULE,
+  DEFAULT_GITHUB_FEED_TASK_SLUG,
+  type CreateGitHubFeedSyncTaskOptions,
+} from './task.js'
