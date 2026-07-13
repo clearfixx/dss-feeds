@@ -1,4 +1,8 @@
 export {
+  DSSGitHubFeedServer,
+  type DSSGitHubFeedServerProps,
+} from './DSSGitHubFeedServer.js'
+export {
   githubFeedPlugin,
   type GitHubFeedPluginOptions,
 } from './plugin.js'

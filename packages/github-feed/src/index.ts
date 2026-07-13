@@ -1,4 +1,10 @@
-export { fetchGitHubCommits } from './github.js'
+export {
+  DSSGitHubFeed,
+  type DSSGitHubFeedProps,
+} from './component/DSSGitHubFeed.js'
+export {
+  fetchGitHubCommits,
+} from './github.js'
 export {
   GitHubFeedError,
   type GitHubCommit,
