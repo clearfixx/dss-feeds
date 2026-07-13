@@ -18,62 +18,29 @@ in production.
 - atomic snapshot synchronization with stale-cache preservation;
 - scheduled Payload task with retries and concurrency control;
 - protected manual synchronization endpoint;
-- authenticated Payload users or an optional machine bearer secret;
+- server-side cache reader;
+- fresh, stale, expired, empty, and unavailable states;
+- stale snapshots remain renderable;
+- expired and unavailable snapshots expose no visitor-facing error;
+- repository filtering, ordering, and display limits;
 - no dependency on third-party social-feed plugins.
 
-## Payload registration
+## Server-side read
 
 ```ts
-import { buildConfig } from 'payload'
-import { githubFeedPlugin } from '@dss-feeds/github-feed/payload'
+import { readGitHubFeed } from '@dss-feeds/github-feed/payload'
 
-export default buildConfig({
-  plugins: [
-    githubFeedPlugin(),
-  ],
+const feed = await readGitHubFeed({
+  payload,
+  commitCount: 3,
+  order: 'desc',
 })
+
+if (!feed.renderable) {
+  return null
+}
 ```
 
-The plugin registers:
-
-```text
-dss-github-feed-settings
-dss-github-feed-cache
-dss-github-feed-sync
-POST /api/dss-github-feed/sync
-```
-
-## Protected manual synchronization
-
-An authenticated Payload admin session can queue a forced
-synchronization:
-
-```ts
-await fetch('/api/dss-github-feed/sync', {
-  method: 'POST',
-})
-```
-
-Machine-to-machine calls can use an optional environment secret:
-
-```env
-DSS_GITHUB_FEED_SYNC_SECRET=replace-with-a-long-random-secret
-```
-
-```bash
-curl -X POST \
-  -H "Authorization: Bearer $DSS_GITHUB_FEED_SYNC_SECRET" \
-  https://example.com/api/dss-github-feed/sync
-```
-
-The endpoint only queues the task and returns `202 Accepted`. It does
-not contact GitHub inside the HTTP request.
-
-## Worker
-
-```bash
-pnpm payload jobs:run \
-  --cron "* * * * *" \
-  --queue dss-github-feed \
-  --handle-schedules
-```
+The reader uses Payload Local API with `overrideAccess: true`. It never
+contacts GitHub. Fresh and stale snapshots are renderable; expired,
+missing, malformed, or temporarily unavailable cache data fails closed.

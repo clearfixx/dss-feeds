@@ -11,6 +11,14 @@ export {
   type CreateGitHubFeedSyncEndpointOptions,
 } from './endpoint.js'
 export {
+  readGitHubFeed,
+  resolveGitHubFeedCacheState,
+  type GitHubFeedCacheState,
+  type GitHubFeedCacheTiming,
+  type GitHubFeedReadResult,
+  type ReadGitHubFeedOptions,
+} from './read.js'
+export {
   createGitHubFeedSettings,
   type CreateGitHubFeedSettingsOptions,
 } from './settings.js'
