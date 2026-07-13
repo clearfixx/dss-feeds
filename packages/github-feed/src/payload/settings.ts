@@ -1,10 +1,24 @@
-import type { GlobalConfig } from 'payload'
+import type {
+  GlobalConfig,
+} from 'payload'
 
-import { isAuthenticatedPayloadRequest } from './access.js'
+import {
+  isAuthenticatedPayloadRequest,
+} from './access.js'
+
+export interface GitHubFeedMonitorFieldOptions {
+  componentPath?: string
+  cacheSlug: string
+  cacheKey: string
+  taskSlug: string
+  syncEndpointPath: string
+  jobLimit?: number
+}
 
 export interface CreateGitHubFeedSettingsOptions {
   slug: string
   adminGroup: string
+  monitor: GitHubFeedMonitorFieldOptions
 }
 
 export function createGitHubFeedSettings(
@@ -17,15 +31,18 @@ export function createGitHubFeedSettings(
       group: options.adminGroup,
     },
     access: {
-      read: isAuthenticatedPayloadRequest,
-      update: isAuthenticatedPayloadRequest,
+      read:
+        isAuthenticatedPayloadRequest,
+      update:
+        isAuthenticatedPayloadRequest,
     },
     fields: [
       {
         name: 'enabled',
         type: 'checkbox',
         defaultValue: false,
-        label: 'Enable GitHub feed synchronization',
+        label:
+          'Enable GitHub feed synchronization',
       },
       {
         name: 'username',
@@ -54,7 +71,8 @@ export function createGitHubFeedSettings(
             type: 'text',
             required: true,
             admin: {
-              placeholder: 'clearfixx/portfolio',
+              placeholder:
+                'clearfixx/portfolio',
             },
           },
         ],
@@ -80,7 +98,8 @@ export function createGitHubFeedSettings(
         min: 1,
         max: 24,
         required: true,
-        label: 'Synchronization interval',
+        label:
+          'Synchronization interval',
         admin: {
           description:
             'The scheduled task checks this value before contacting GitHub.',
@@ -94,7 +113,8 @@ export function createGitHubFeedSettings(
         min: 15,
         max: 1440,
         required: true,
-        label: 'Fresh cache lifetime',
+        label:
+          'Fresh cache lifetime',
         admin: {
           description:
             'A successful snapshot is considered fresh for this many minutes.',
@@ -108,11 +128,48 @@ export function createGitHubFeedSettings(
         min: 1,
         max: 168,
         required: true,
-        label: 'Stale fallback lifetime',
+        label:
+          'Stale fallback lifetime',
         admin: {
           description:
             'The last successful snapshot remains renderable for this many additional hours after freshness expires.',
           step: 1,
+        },
+      },
+      {
+        name: 'monitor',
+        type: 'ui',
+        label:
+          'GitHub Feed Monitor',
+        admin: {
+          disableListColumn: true,
+          components: {
+            Field: {
+              path:
+                options.monitor
+                  .componentPath ??
+                '@dss-feeds/github-feed/admin',
+              exportName:
+                'GitHubFeedMonitor',
+              serverProps: {
+                cacheSlug:
+                  options.monitor
+                    .cacheSlug,
+                cacheKey:
+                  options.monitor
+                    .cacheKey,
+                taskSlug:
+                  options.monitor
+                    .taskSlug,
+                syncEndpointPath:
+                  options.monitor
+                    .syncEndpointPath,
+                jobLimit:
+                  options.monitor
+                    .jobLimit ?? 5,
+              },
+            },
+          },
         },
       },
     ],

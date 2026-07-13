@@ -5,9 +5,15 @@ import type {
   Plugin,
 } from 'payload'
 
-import { createGitHubFeedCache } from './cache.js'
-import { createGitHubFeedSyncEndpoint } from './endpoint.js'
-import { createGitHubFeedSettings } from './settings.js'
+import {
+  createGitHubFeedCache,
+} from './cache.js'
+import {
+  createGitHubFeedSyncEndpoint,
+} from './endpoint.js'
+import {
+  createGitHubFeedSettings,
+} from './settings.js'
 import {
   createGitHubFeedSyncTask,
   DEFAULT_GITHUB_FEED_QUEUE,
@@ -19,69 +25,39 @@ type PayloadEndpoint =
   NonNullable<Config['endpoints']>[number]
 
 export interface GitHubFeedPluginOptions {
-  /**
-   * Keep schemas, task, and endpoint registered while disabling the
-   * recurring schedule. Manual jobs can still be queued.
-   */
   disabled?: boolean
-
-  /**
-   * Payload navigation group used for the settings global.
-   */
   adminGroup?: string
-
-  /**
-   * Slug of the singleton settings global.
-   */
   settingsSlug?: string
-
-  /**
-   * Slug of the internal snapshot collection.
-   */
   cacheSlug?: string
-
-  /**
-   * Unique key of the active snapshot document.
-   */
   cacheKey?: string
-
-  /**
-   * Payload task slug.
-   */
   taskSlug?: string
-
-  /**
-   * Payload queue used by scheduled and manually queued jobs.
-   */
   queue?: string
-
-  /**
-   * Cron expression used to queue periodic checks.
-   */
   scheduleCron?: string
-
-  /**
-   * Server environment variable containing an optional GitHub API token.
-   */
   tokenEnvironmentVariable?: string
-
-  /**
-   * Protected top-level Payload endpoint path.
-   */
   syncEndpointPath?: string
+  syncSecretEnvironmentVariable?: string
 
   /**
-   * Optional environment variable accepted as a bearer token by the
-   * synchronization endpoint.
+   * Optional custom component path for advanced package embedding.
    */
-  syncSecretEnvironmentVariable?: string
+  monitorComponentPath?: string
+
+  /**
+   * Number of recent Payload jobs shown in the admin monitor.
+   */
+  monitorJobLimit?: number
 }
 
 const DEFAULT_SETTINGS_SLUG =
   'dss-github-feed-settings'
 const DEFAULT_CACHE_SLUG =
   'dss-github-feed-cache'
-const DEFAULT_ADMIN_GROUP = 'DSS Feeds'
+const DEFAULT_CACHE_KEY =
+  'github:default'
+const DEFAULT_ADMIN_GROUP =
+  'DSS Feeds'
+const DEFAULT_SYNC_ENDPOINT_PATH =
+  '/dss-github-feed/sync'
 
 export const githubFeedPlugin =
   (
@@ -94,12 +70,18 @@ export const githubFeedPlugin =
     const cacheSlug =
       options.cacheSlug ??
       DEFAULT_CACHE_SLUG
+    const cacheKey =
+      options.cacheKey ??
+      DEFAULT_CACHE_KEY
     const taskSlug =
       options.taskSlug ??
       DEFAULT_GITHUB_FEED_TASK_SLUG
     const queue =
       options.queue ??
       DEFAULT_GITHUB_FEED_QUEUE
+    const syncEndpointPath =
+      options.syncEndpointPath ??
+      DEFAULT_SYNC_ENDPOINT_PATH
 
     const settings =
       createGitHubFeedSettings({
@@ -107,33 +89,45 @@ export const githubFeedPlugin =
         adminGroup:
           options.adminGroup ??
           DEFAULT_ADMIN_GROUP,
+        monitor: {
+          componentPath:
+            options.monitorComponentPath,
+          cacheSlug,
+          cacheKey,
+          taskSlug,
+          syncEndpointPath,
+          jobLimit:
+            options.monitorJobLimit,
+        },
       })
-    const cache = createGitHubFeedCache({
-      slug: cacheSlug,
-    })
-    const task = createGitHubFeedSyncTask({
-      taskSlug,
-      queue,
-      scheduleCron:
-        options.scheduleCron ??
-        DEFAULT_GITHUB_FEED_SCHEDULE,
-      scheduleEnabled:
-        options.disabled !== true,
-      tokenEnvironmentVariable:
-        options.tokenEnvironmentVariable,
-      settingsSlug,
-      cacheSlug,
-      cacheKey: options.cacheKey,
-    })
+    const cache =
+      createGitHubFeedCache({
+        slug: cacheSlug,
+      })
+    const task =
+      createGitHubFeedSyncTask({
+        taskSlug,
+        queue,
+        scheduleCron:
+          options.scheduleCron ??
+          DEFAULT_GITHUB_FEED_SCHEDULE,
+        scheduleEnabled:
+          options.disabled !== true,
+        tokenEnvironmentVariable:
+          options
+            .tokenEnvironmentVariable,
+        settingsSlug,
+        cacheSlug,
+        cacheKey,
+      })
     const endpoint =
       createGitHubFeedSyncEndpoint({
-        path:
-          options.syncEndpointPath ??
-          '/dss-github-feed/sync',
+        path: syncEndpointPath,
         taskSlug,
         queue,
         syncSecretEnvironmentVariable:
-          options.syncSecretEnvironmentVariable,
+          options
+            .syncSecretEnvironmentVariable,
       })
 
     assertSlugAvailable(
@@ -187,11 +181,14 @@ function assertSlugAvailable(
     | GlobalConfig
   )[],
   slug: string,
-  kind: 'collection' | 'global',
+  kind:
+    | 'collection'
+    | 'global',
 ): void {
   if (
     entries.some(
-      (entry) => entry.slug === slug,
+      (entry) =>
+        entry.slug === slug,
     )
   ) {
     throw new Error(
@@ -201,13 +198,18 @@ function assertSlugAvailable(
 }
 
 function assertJobSlugAvailable(
-  tasks: readonly { slug: string }[],
-  workflows: readonly { slug: string }[],
+  tasks: readonly {
+    slug: string
+  }[],
+  workflows: readonly {
+    slug: string
+  }[],
   slug: string,
 ): void {
   if (
     tasks.some(
-      (task) => task.slug === slug,
+      (task) =>
+        task.slug === slug,
     ) ||
     workflows.some(
       (workflow) =>
@@ -221,14 +223,17 @@ function assertJobSlugAvailable(
 }
 
 function assertEndpointAvailable(
-  endpoints: readonly PayloadEndpoint[],
+  endpoints:
+    readonly PayloadEndpoint[],
   candidate: PayloadEndpoint,
 ): void {
   if (
     endpoints.some(
       (endpoint) =>
-        endpoint.path === candidate.path &&
-        endpoint.method === candidate.method,
+        endpoint.path ===
+          candidate.path &&
+        endpoint.method ===
+          candidate.method,
     )
   ) {
     throw new Error(

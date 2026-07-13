@@ -1,0 +1,311 @@
+.dss-github-monitor {
+  --dss-monitor-border:
+    var(--theme-elevation-150, #d0d7de);
+  --dss-monitor-surface:
+    var(--theme-elevation-50, #f6f8fa);
+  --dss-monitor-surface-strong:
+    var(--theme-elevation-100, #eef1f4);
+  --dss-monitor-text:
+    var(--theme-text, #1f2328);
+  --dss-monitor-muted:
+    var(--theme-elevation-600, #656d76);
+  --dss-monitor-accent:
+    var(--theme-success-500, #1a7f37);
+  --dss-monitor-danger:
+    var(--theme-error-500, #cf222e);
+  --dss-monitor-warning:
+    var(--theme-warning-500, #9a6700);
+
+  display: grid;
+  gap: 1rem;
+  margin-block: 1.5rem;
+  padding: 1rem;
+  color: var(--dss-monitor-text);
+  border: 1px solid
+    var(--dss-monitor-border);
+  border-radius: 0.5rem;
+  background:
+    var(--dss-monitor-surface);
+}
+
+.dss-github-monitor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dss-github-monitor-eyebrow,
+.dss-github-monitor-title,
+.dss-github-monitor-description {
+  margin: 0;
+}
+
+.dss-github-monitor-eyebrow {
+  margin-block-end: 0.3rem;
+  color: var(--dss-monitor-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.dss-github-monitor-title {
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+
+.dss-github-monitor-description {
+  max-width: 48rem;
+  margin-block-start: 0.35rem;
+  color: var(--dss-monitor-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.dss-github-monitor-status {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.55rem;
+  color: var(--dss-monitor-muted);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dss-github-monitor-status--fresh,
+.dss-github-monitor-status--success {
+  color: var(--dss-monitor-accent);
+}
+
+.dss-github-monitor-status--stale,
+.dss-github-monitor-status--warning {
+  color: var(--dss-monitor-warning);
+}
+
+.dss-github-monitor-status--expired,
+.dss-github-monitor-status--unavailable,
+.dss-github-monitor-status--error {
+  color: var(--dss-monitor-danger);
+}
+
+.dss-github-monitor-metrics {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(9rem, 1fr)
+    );
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.dss-github-monitor-metric {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid
+    var(--dss-monitor-border);
+  border-radius: 0.4rem;
+  background:
+    var(
+      --dss-monitor-surface-strong
+    );
+}
+
+.dss-github-monitor-metric dt {
+  margin-block-end: 0.25rem;
+  color: var(--dss-monitor-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dss-github-monitor-metric dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.8125rem;
+}
+
+.dss-github-monitor-notice {
+  padding: 0.75rem;
+  color: var(--dss-monitor-warning);
+  border: 1px solid currentColor;
+  border-radius: 0.4rem;
+}
+
+.dss-github-monitor-notice p {
+  margin: 0;
+}
+
+.dss-github-monitor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dss-github-monitor-button {
+  min-height: 2.25rem;
+  padding: 0.45rem 0.8rem;
+  color: #fff;
+  border: 1px solid
+    var(--dss-monitor-text);
+  border-radius: 0.35rem;
+  background:
+    var(--dss-monitor-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.dss-github-monitor-button--secondary {
+  color: var(--dss-monitor-text);
+  background: transparent;
+}
+
+.dss-github-monitor-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.dss-github-monitor-button:focus-visible {
+  outline: 2px solid
+    var(--dss-monitor-text);
+  outline-offset: 2px;
+}
+
+.dss-github-monitor-action-message {
+  min-height: 1.2em;
+  color: var(--dss-monitor-muted);
+  font-size: 0.75rem;
+}
+
+.dss-github-monitor-console {
+  overflow: hidden;
+  border: 1px solid
+    var(--dss-monitor-border);
+  border-radius: 0.4rem;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.dss-github-monitor-console-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  border-block-end:
+    1px solid #30363d;
+  color: #8b949e;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dss-github-monitor-console-body {
+  max-height: 18rem;
+  overflow: auto;
+  padding: 0.55rem 0.75rem;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.dss-github-monitor-log-row {
+  display: grid;
+  grid-template-columns:
+    5rem 4.5rem minmax(0, 1fr);
+  gap: 0.6rem;
+  padding-block: 0.22rem;
+}
+
+.dss-github-monitor-log-time {
+  color: #8b949e;
+}
+
+.dss-github-monitor-log-level {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dss-github-monitor-log-level--info {
+  color: #79c0ff;
+}
+
+.dss-github-monitor-log-level--success {
+  color: #56d364;
+}
+
+.dss-github-monitor-log-level--warning {
+  color: #e3b341;
+}
+
+.dss-github-monitor-log-level--error {
+  color: #ff7b72;
+}
+
+.dss-github-monitor-log-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.dss-github-monitor-log-context {
+  display: block;
+  margin-block-start: 0.15rem;
+  color: #8b949e;
+  white-space: pre-wrap;
+}
+
+.dss-github-monitor-empty {
+  margin: 0;
+  color: #8b949e;
+}
+
+.dss-github-monitor-checked {
+  margin: 0;
+  color: var(--dss-monitor-muted);
+  font-size: 0.6875rem;
+  text-align: right;
+}
+
+@media (max-width: 48rem) {
+  .dss-github-monitor-header,
+  .dss-github-monitor-console-header {
+    flex-direction: column;
+  }
+
+  .dss-github-monitor-log-row {
+    grid-template-columns:
+      4.5rem minmax(0, 1fr);
+  }
+
+  .dss-github-monitor-log-message {
+    grid-column: 1 / -1;
+    padding-inline-start: 5.1rem;
+  }
+}

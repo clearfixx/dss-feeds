@@ -17,6 +17,7 @@ export interface GitHubFeedCacheTiming {
 export interface GitHubFeedReadResult {
   state: GitHubFeedCacheState
   renderable: boolean
+  cachedCommitCount: number
   commits: readonly GitHubCommit[]
   checksum: string | null
   adapterVersion: string | null
@@ -111,6 +112,9 @@ export async function readGitHubFeed(
     return createEmptyResult('empty')
   }
 
+  const cachedCommits = readCommits(
+    rawSnapshot.commits,
+  )
   const generatedAt = readDateString(
     rawSnapshot.generatedAt,
   )
@@ -135,7 +139,11 @@ export async function readGitHubFeed(
 
   if (!freshUntil || !staleUntil) {
     return {
-      ...createEmptyResult('expired'),
+      state: 'expired',
+      renderable: false,
+      cachedCommitCount:
+        cachedCommits.length,
+      commits: [],
       checksum,
       adapterVersion,
       generatedAt,
@@ -162,6 +170,8 @@ export async function readGitHubFeed(
     return {
       state,
       renderable: false,
+      cachedCommitCount:
+        cachedCommits.length,
       commits: [],
       checksum,
       adapterVersion,
@@ -173,9 +183,7 @@ export async function readGitHubFeed(
     }
   }
 
-  const commits = readCommits(
-    rawSnapshot.commits,
-  )
+  const commits = cachedCommits
     .filter((commit) =>
       matchesRepositoryFilter(
         commit.repository,
@@ -196,6 +204,7 @@ export async function readGitHubFeed(
   return {
     state,
     renderable: commits.length > 0,
+    cachedCommitCount: cachedCommits.length,
     commits,
     checksum,
     adapterVersion,
@@ -271,26 +280,31 @@ function parsePayloadCommit(
     return null
   }
 
-  const id = readRequiredString(
+  const id = readOptionalString(
     value.externalId,
   )
-  const sha = readRequiredString(
+  const sha = readOptionalString(
     value.sha,
   )
-  const shortSha =
-    readRequiredString(value.shortSha)
-  const repository =
-    readRequiredString(value.repository)
+  const shortSha = readOptionalString(
+    value.shortSha,
+  )
+  const repository = readOptionalString(
+    value.repository,
+  )
   const repositoryUrl =
-    readRequiredString(
+    readOptionalString(
       value.repositoryUrl,
     )
-  const title =
-    readRequiredString(value.title)
-  const committedAt =
-    readDateString(value.committedAt)
-  const url =
-    readRequiredString(value.url)
+  const title = readOptionalString(
+    value.title,
+  )
+  const committedAt = readDateString(
+    value.committedAt,
+  )
+  const url = readOptionalString(
+    value.url,
+  )
 
   if (
     !id ||
@@ -399,12 +413,12 @@ function matchesRepositoryFilter(
 function createEmptyResult(
   state:
     | 'empty'
-    | 'expired'
     | 'unavailable',
 ): GitHubFeedReadResult {
   return {
     state,
     renderable: false,
+    cachedCommitCount: 0,
     commits: [],
     checksum: null,
     adapterVersion: null,
@@ -430,12 +444,6 @@ function readDateString(
   return Number.isNaN(timestamp)
     ? null
     : new Date(timestamp).toISOString()
-}
-
-function readRequiredString(
-  value: unknown,
-): string | null {
-  return readOptionalString(value)
 }
 
 function readOptionalString(

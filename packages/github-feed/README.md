@@ -1,8 +1,10 @@
 # @dss-feeds/github-feed
 
-An owned, cache-first GitHub commit feed integration for Payload CMS and React.
+An owned, cache-first GitHub commit feed integration for Payload CMS
+and React.
 
-The package is private while its API and production integration are validated.
+The package is private while its API and production integration are
+validated.
 
 ## Guarantees
 
@@ -10,13 +12,16 @@ The package is private while its API and production integration are validated.
 - no injected attribution, branding, analytics, or hidden backlinks;
 - no visitor-facing provider errors;
 - stale local snapshots remain available when synchronization fails;
-- neutral optional CSS and a replaceable item renderer.
+- neutral optional CSS and a replaceable item renderer;
+- Payload Admin monitor reads only local cache and job documents.
 
 ## Payload registration
 
 ```ts
 import { buildConfig } from 'payload'
-import { githubFeedPlugin } from '@dss-feeds/github-feed/payload'
+import {
+  githubFeedPlugin,
+} from '@dss-feeds/github-feed/payload'
 
 export default buildConfig({
   plugins: [
@@ -25,9 +30,19 @@ export default buildConfig({
 })
 ```
 
-## Pure presentation component
+The settings Global includes an operational monitor with:
 
-The default component receives normalized local data and performs no I/O:
+- cache state and commit count;
+- last generation and next synchronization timestamps;
+- recent Payload job attempts;
+- structured synchronization events;
+- `Refresh status`;
+- `Regenerate cache`.
+
+The regenerate action queues a forced Payload task through the protected
+endpoint. It does not contact GitHub from the browser.
+
+## Pure presentation component
 
 ```tsx
 import {
@@ -46,8 +61,6 @@ import '@dss-feeds/github-feed/styles.css'
 
 ## Payload server component
 
-The convenience server component reads only the local Payload cache:
-
 ```tsx
 import {
   DSSGitHubFeedServer,
@@ -62,26 +75,6 @@ import '@dss-feeds/github-feed/styles.css'
   profileUrl="https://github.com/your-account"
 />
 ```
-
-When the cache is missing, expired, malformed, or temporarily unavailable, the
-component returns `null` unless an explicit `emptyState` is supplied.
-
-## Styling
-
-The stylesheet is intentionally neutral and uses CSS custom properties:
-
-```css
-.site-footer .dss-github-feed {
-  --dss-github-feed-background: transparent;
-  --dss-github-feed-border: rgba(255, 255, 255, 0.14);
-  --dss-github-feed-text: #f4f7fb;
-  --dss-github-feed-muted: #8b98a7;
-  --dss-github-feed-accent: #2de2e6;
-  --dss-github-feed-radius: 0.5rem;
-}
-```
-
-For complete control, omit the default stylesheet or provide `renderItem`.
 
 ## Worker
 
