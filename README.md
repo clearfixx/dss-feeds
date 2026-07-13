@@ -1,33 +1,37 @@
 # DSS Feeds
 
-Headless, cache-first social feed packages for server-rendered applications.
+Cache-first social feed packages for Payload CMS and server-rendered
+applications.
 
-## Principles
+## Product boundary
 
-- no external provider requests during page rendering;
-- no runtime tracking, injected attribution, hidden links, or branding;
-- neutral and optional default UI;
-- provider data is normalized before it reaches a component;
-- the last valid cache remains available when synchronization fails;
-- operational errors are visible to administrators, never to site visitors.
+DSS Feeds owns its provider integration, normalization, cache lifecycle,
+Payload administration, and neutral presentation components.
 
-## Workspace
+The project does not fork, wrap, or depend on third-party social-feed
+plugins. Provider packages communicate with official platform HTTP APIs
+through small internal clients.
+
+Runtime components never inject tracking, attribution, branding, hidden
+links, or provider requests into a visitor's page.
+
+## Packages
 
 ```text
 packages/
-└── core/
+└── github-feed/
 ```
 
-Provider and Payload packages will be added as separate workspace packages:
+Planned packages:
 
 ```text
-@dss-feeds/github
-@dss-feeds/instagram
-@dss-feeds/x
-@dss-feeds/payload
+@dss-feeds/github-feed
+@dss-feeds/instagram-feed
+@dss-feeds/x-feed
 ```
 
-All packages remain private until their public APIs and integration tests are stable.
+Shared code will be extracted only after real duplication appears across
+at least two production integrations.
 
 ## Commands
 
