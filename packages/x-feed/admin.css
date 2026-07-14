@@ -1,0 +1,226 @@
+.dss-x-admin {
+  --dss-x-border: color-mix(in srgb, currentColor 18%, transparent);
+  --dss-x-muted: color-mix(in srgb, currentColor 66%, transparent);
+  --dss-x-panel: color-mix(in srgb, currentColor 4%, transparent);
+  --dss-x-danger: #b42318;
+  --dss-x-danger-bg: #fef3f2;
+  --dss-x-warning: #a15c00;
+  --dss-x-warning-bg: #fffaeb;
+  --dss-x-success: #067647;
+  --dss-x-success-bg: #ecfdf3;
+  display: grid;
+  gap: 1rem;
+  margin-block: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--dss-x-border);
+  border-radius: 0.75rem;
+  background: var(--dss-x-panel);
+  color: inherit;
+}
+
+.dss-x-admin__header,
+.dss-x-admin__source-row,
+.dss-x-admin__section-heading,
+.dss-x-admin__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dss-x-admin__header h2,
+.dss-x-admin__section h3,
+.dss-x-admin__header p,
+.dss-x-admin__warning p,
+.dss-x-admin__action-message,
+.dss-x-admin__console-line p,
+.dss-x-admin__empty {
+  margin: 0;
+}
+
+.dss-x-admin__header h2 {
+  margin-block: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.dss-x-admin__header p,
+.dss-x-admin__warning p,
+.dss-x-admin__footer,
+.dss-x-admin__empty {
+  color: var(--dss-x-muted);
+}
+
+.dss-x-admin__eyebrow,
+.dss-x-admin__label,
+.dss-x-admin__metric span,
+.dss-x-admin__section-heading span {
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dss-x-muted);
+}
+
+.dss-x-admin__status,
+.dss-x-admin__risk {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dss-x-admin__status[data-status='healthy'],
+.dss-x-admin__risk[data-tone='safe'] {
+  color: var(--dss-x-success);
+  background: var(--dss-x-success-bg);
+}
+
+.dss-x-admin__status[data-status='degraded'],
+.dss-x-admin__risk[data-tone='warning'] {
+  color: var(--dss-x-warning);
+  background: var(--dss-x-warning-bg);
+}
+
+.dss-x-admin__status[data-status='failed'],
+.dss-x-admin__risk[data-tone='danger'] {
+  color: var(--dss-x-danger);
+  background: var(--dss-x-danger-bg);
+}
+
+.dss-x-admin__status[data-status='idle'],
+.dss-x-admin__status[data-status='running'] {
+  border: 1px solid var(--dss-x-border);
+}
+
+.dss-x-admin__warning {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--dss-x-border);
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+}
+
+.dss-x-admin__warning[data-tone='danger'] {
+  border-left-color: var(--dss-x-danger);
+  background: var(--dss-x-danger-bg);
+}
+
+.dss-x-admin__warning[data-tone='warning'] {
+  border-left-color: var(--dss-x-warning);
+  background: var(--dss-x-warning-bg);
+}
+
+.dss-x-admin__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.dss-x-admin__metric,
+.dss-x-admin__attempt {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--dss-x-border);
+  border-radius: 0.5rem;
+  background: var(--dss-x-panel);
+}
+
+.dss-x-admin__actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.dss-x-admin__button {
+  min-height: 2.5rem;
+  padding-inline: 1rem;
+  border: 1px solid currentColor;
+  border-radius: 0.45rem;
+  background: currentColor;
+  color: Canvas;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dss-x-admin__button--secondary {
+  background: transparent;
+  color: inherit;
+}
+
+.dss-x-admin__button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.dss-x-admin__action-message {
+  flex-basis: 100%;
+}
+
+.dss-x-admin__section {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.dss-x-admin__attempts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.65rem;
+}
+
+.dss-x-admin__attempt [data-outcome='error'],
+.dss-x-admin__console-line [data-level='error'] {
+  color: var(--dss-x-danger);
+}
+
+.dss-x-admin__attempt [data-outcome='success'],
+.dss-x-admin__console-line [data-level='success'] {
+  color: var(--dss-x-success);
+}
+
+.dss-x-admin__console {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 24rem;
+  overflow: auto;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: #111827;
+  color: #f9fafb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.dss-x-admin__console-line {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: baseline;
+}
+
+.dss-x-admin__console-line time {
+  color: #9ca3af;
+}
+
+.dss-x-admin__console-line code {
+  grid-column: 3;
+  overflow-wrap: anywhere;
+  color: #9ca3af;
+}
+
+@media (max-width: 700px) {
+  .dss-x-admin__header,
+  .dss-x-admin__source-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dss-x-admin__console-line {
+    grid-template-columns: auto 1fr;
+  }
+
+  .dss-x-admin__console-line p,
+  .dss-x-admin__console-line code {
+    grid-column: 1 / -1;
+  }
+}

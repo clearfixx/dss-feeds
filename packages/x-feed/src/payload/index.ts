@@ -32,3 +32,11 @@ export {
   type CreateXFeedSyncTaskOptions,
   type PayloadXFeedHealthEventContext,
 } from './task.js'
+export {
+  loadXFeedAdminStatus,
+  type LoadXFeedAdminStatusOptions,
+} from './admin-status.js'
+export {
+  createXFeedStatusEndpoint,
+  type CreateXFeedStatusEndpointOptions,
+} from './status-endpoint.js'

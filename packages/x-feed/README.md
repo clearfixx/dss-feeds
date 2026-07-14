@@ -22,11 +22,12 @@ The package currently owns:
 - framework-agnostic snapshot storage, synchronization, and stale-cache reads;
 - persistent health state, degradation thresholds, and recovery events;
 - optional Payload cache/settings storage adapters;
-- single-flight sync orchestration, scheduled Payload jobs, and a protected manual endpoint.
+- single-flight sync orchestration, scheduled Payload jobs, and protected endpoints;
+- an opt-in neutral Payload Admin live monitor.
 
 It intentionally does **not** include:
 
-- Payload plugin composition or admin presentation UI;
+- Payload plugin composition;
 - React presentation components;
 - Portfolio-specific markup, class names, or design tokens.
 
@@ -381,3 +382,26 @@ A custom red admin warning component will be added with the full Payload plugin.
 2. red experimental-source warning and manual-sync UI;
 3. neutral React component and optional CSS;
 4. Portfolio integration, email transport, and Portfolio-only theme.
+
+
+## Payload Admin monitor
+
+Register the settings field, status endpoint, sync endpoint, cache collection,
+and task together:
+
+```ts
+import {
+  createXFeedCacheCollection,
+  createXFeedSettingsGlobal,
+  createXFeedStatusEndpoint,
+  createXFeedSyncEndpoint,
+  createXFeedSyncTask,
+} from '@dss-feeds/x-feed/payload'
+
+const settings = createXFeedSettingsGlobal({ monitor: {} })
+```
+
+The monitor reads only local Payload state, queues manual synchronization through
+the protected endpoint, and polls the authenticated status endpoint. Experimental
+Nitter/RSSHub modes are rendered with a red warning label and expose persistent
+failure/degradation counters for host-defined notification delivery.
