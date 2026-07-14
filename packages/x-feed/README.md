@@ -19,11 +19,13 @@ The package currently owns:
 - an official X API v2 source adapter;
 - lightweight Nitter-compatible and RSSHub source adapters;
 - deterministic source fallback;
-- framework-agnostic snapshot storage, synchronization, and stale-cache reads.
+- framework-agnostic snapshot storage, synchronization, and stale-cache reads;
+- persistent health state, degradation thresholds, and recovery events;
+- optional Payload cache/settings storage adapters.
 
 It intentionally does **not** include:
 
-- Payload CMS collections, jobs, or admin UI;
+- Payload jobs, endpoints, or admin presentation UI;
 - React presentation components;
 - Portfolio-specific markup, class names, or design tokens.
 
@@ -264,13 +266,81 @@ Successful synchronization:
 `empty`, `fresh`, `stale`, `expired`, `invalid`, or `unavailable`, allowing the
 rendering layer to remain provider-independent and visitor-safe.
 
-The included memory store is intended for tests, examples, and single-process
-development. Production persistence is supplied by a future Payload adapter or
-another application-defined `XFeedSnapshotStore`.
+The included memory snapshot store is intended for tests, examples, and
+single-process development. Production persistence can use the Payload adapter
+or another application-defined `XFeedSnapshotStore`.
+
+## Health monitoring and notification events
+
+`runMonitoredXFeedSync` persists a framework-agnostic health state around the
+cache synchronization lifecycle:
+
+```ts
+import {
+  createMemoryXFeedMonitorStore,
+  runMonitoredXFeedSync,
+} from '@dss-feeds/x-feed'
+
+const monitorStore = createMemoryXFeedMonitorStore()
+
+await runMonitoredXFeedSync({
+  source,
+  snapshotStore: store,
+  monitorStore,
+  trigger: 'schedule',
+  config: { username: 'your_handle' },
+  monitorPolicy: {
+    failureThreshold: 3,
+    notificationCooldownMs: 12 * 60 * 60 * 1000,
+  },
+  onHealthEvent(event) {
+    // Forward this neutral event to email, Slack, Payload notifications, etc.
+    console.info(event.type)
+  },
+})
+```
+
+The monitor distinguishes:
+
+- `healthy`: the requested source succeeded normally;
+- `degraded`: a fallback source succeeded after another source failed, or a
+  provider request failed while a renderable cache remains available;
+- `failed`: synchronization failed and there is no renderable cache.
+
+It emits `failure-threshold-reached` after repeated complete failures,
+`source-degraded-threshold-reached` when an experimental/primary source keeps
+failing behind a working fallback, and `recovered` after healthy operation
+returns. Cooldown state prevents repeated notification spam.
+
+The package emits events but does not send email itself. Notification transport
+belongs to the consuming application.
+
+## Payload persistence
+
+The optional Payload subpath provides collection/global factories and storage
+adapters without coupling the core package to Payload at runtime:
+
+```ts
+import {
+  createPayloadXFeedMonitorStore,
+  createPayloadXFeedSnapshotStore,
+  createXFeedCacheCollection,
+  createXFeedSettingsGlobal,
+} from '@dss-feeds/x-feed/payload'
+```
+
+`createXFeedCacheCollection` stores a validated snapshot in an isolated JSON
+field while denormalizing operational columns such as source stability, post
+count, freshness, and next synchronization time. `createXFeedSettingsGlobal`
+contains provider selection, cache policy, failure threshold, cooldown, and the
+persistent monitor state.
+
+The settings schema labels Nitter-compatible and RSSHub modes as experimental.
+A custom red admin warning component will be added with the full Payload plugin.
 
 ## Planned slices
 
-1. Payload CMS plugin and persistent admin monitor;
-2. failure thresholds, notification events, and recovery state;
+1. Payload jobs, manual endpoint, and plugin composition;
+2. Payload admin monitor and red experimental-source warning;
 3. neutral React component and optional CSS;
-4. Portfolio integration and Portfolio-only theme.
+4. Portfolio integration, email transport, and Portfolio-only theme.

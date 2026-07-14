@@ -45,7 +45,11 @@ importers:
         specifier: ^19.0.0
         version: 19.2.7(react@19.2.7)
 
-  packages/x-feed: {}
+  packages/x-feed:
+    devDependencies:
+      payload:
+        specifier: 3.85.2
+        version: 3.85.2(graphql@16.14.2)(typescript@5.7.3)
 
 packages:
 

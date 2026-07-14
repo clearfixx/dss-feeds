@@ -15,10 +15,12 @@ import {
 } from './cache.js'
 import { collectXPosts } from './feed.js'
 import { resolveXFeedConfig } from './security.js'
+import { readXFeedSourceRunDiagnostics } from './source-diagnostics.js'
 import {
   XFeedError,
   type XFeedConfig,
   type XFeedSource,
+  type XFeedSourceRunDiagnostics,
 } from './types.js'
 
 export type XFeedSyncLogLevel = 'info' | 'success' | 'warning' | 'error'
@@ -46,6 +48,7 @@ export interface XFeedSyncResult {
   staleUntil: string | null
   nextSyncAt: string | null
   warnings: readonly string[]
+  sourceDiagnostics: XFeedSourceRunDiagnostics
 }
 
 export interface SynchronizeXFeedOptions {
@@ -105,6 +108,13 @@ export async function synchronizeXFeed(
       staleUntil: existing.staleUntil,
       nextSyncAt: existing.nextSyncAt,
       warnings: existing.warnings,
+      sourceDiagnostics: {
+        requestedSourceId: options.source.id,
+        selectedSourceId:
+          existing.source.kind === 'fallback' ? null : existing.source.id,
+        degraded: false,
+        attempts: [],
+      },
     }
   }
 
@@ -143,6 +153,7 @@ export async function synchronizeXFeed(
     throw error
   }
 
+  const sourceDiagnostics = readXFeedSourceRunDiagnostics(options.source)
   const posts = mergeXPosts(
     existing?.posts ?? [],
     fetchedPosts,
@@ -160,7 +171,12 @@ export async function synchronizeXFeed(
     policy.syncIntervalMs,
   ).toISOString()
   const source = createXFeedSnapshotSource(options.source)
-  const warnings = createWarnings(source.warning, posts.length, fetchedPosts.length)
+  const warnings = createWarnings(
+    source.warning,
+    posts.length,
+    fetchedPosts.length,
+    sourceDiagnostics,
+  )
   const changed = existing?.checksum !== checksum
 
   const snapshot: XFeedSnapshot = {
@@ -212,6 +228,8 @@ export async function synchronizeXFeed(
       : 'X feed snapshot was created successfully.',
     {
       sourceId: options.source.id,
+      selectedSourceId: sourceDiagnostics.selectedSourceId,
+      degraded: sourceDiagnostics.degraded,
       fetchedPostCount: fetchedPosts.length,
       cachedPostCount: posts.length,
       changed,
@@ -234,6 +252,7 @@ export async function synchronizeXFeed(
     staleUntil,
     nextSyncAt,
     warnings,
+    sourceDiagnostics,
   }
 }
 
@@ -272,11 +291,18 @@ function createWarnings(
   sourceWarning: string | null,
   cachedPostCount: number,
   fetchedPostCount: number,
+  diagnostics: XFeedSourceRunDiagnostics,
 ): string[] {
   const warnings: string[] = []
 
   if (sourceWarning) {
     warnings.push(sourceWarning)
+  }
+
+  if (diagnostics.degraded) {
+    warnings.push(
+      'The X feed synchronized through a fallback after one or more source failures.',
+    )
   }
 
   if (cachedPostCount === 0 && fetchedPostCount === 0) {

@@ -29,7 +29,12 @@
       "import": "./dist/source/fallback.js",
       "default": "./dist/source/fallback.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./payload": {
+      "types": "./dist/payload/index.d.ts",
+      "import": "./dist/payload/index.js",
+      "default": "./dist/payload/index.js"
+    }
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
@@ -39,5 +44,16 @@
     "node": ">=20.9.0"
   },
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "payload": ">=3.85.0 <4"
+  },
+  "peerDependenciesMeta": {
+    "payload": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "payload": "3.85.2"
+  }
 }

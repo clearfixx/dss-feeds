@@ -1,6 +1,8 @@
 export { collectXPosts } from './feed.js'
 export { getXFeedSourceMetadata } from './source-metadata.js'
+export { readXFeedSourceRunDiagnostics } from './source-diagnostics.js'
 export { createMemoryXFeedSnapshotStore } from './memory-store.js'
+export { createMemoryXFeedMonitorStore } from './memory-monitor-store.js'
 export {
   X_FEED_ADAPTER_VERSION,
   X_FEED_SNAPSHOT_VERSION,
@@ -24,6 +26,22 @@ export {
   type XFeedSnapshotStore,
 } from './cache.js'
 export {
+  X_FEED_MONITOR_VERSION,
+  createInitialXFeedMonitorState,
+  parseXFeedMonitorState,
+  runMonitoredXFeedSync,
+  type RunMonitoredXFeedSyncOptions,
+  type RunMonitoredXFeedSyncResult,
+  type XFeedHealthEvent,
+  type XFeedHealthEventType,
+  type XFeedMonitorLogEntry,
+  type XFeedMonitorPolicy,
+  type XFeedMonitorState,
+  type XFeedMonitorStatus,
+  type XFeedMonitorStore,
+  type XFeedMonitorTrigger,
+} from './monitor.js'
+export {
   synchronizeXFeed,
   type SynchronizeXFeedOptions,
   type XFeedSyncLogEntry,
@@ -31,6 +49,7 @@ export {
   type XFeedSyncResult,
 } from './sync.js'
 export type { MemoryXFeedSnapshotStore } from './memory-store.js'
+export type { MemoryXFeedMonitorStore } from './memory-monitor-store.js'
 
 export {
   XFeedError,
@@ -40,8 +59,11 @@ export {
   type XFeedRequestOptions,
   type XFeedSource,
   type XFeedSourceContext,
+  type XFeedSourceAttemptDiagnostic,
+  type XFeedSourceAttemptOutcome,
   type XFeedSourceKind,
   type XFeedSourceMetadata,
+  type XFeedSourceRunDiagnostics,
   type XFeedSourceStability,
   type XPost,
   type XPostAuthor,

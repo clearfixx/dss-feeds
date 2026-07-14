@@ -3,7 +3,9 @@ import { getXFeedSourceMetadata } from '../source-metadata.js'
 import {
   XFeedError,
   type XFeedSource,
+  type XFeedSourceAttemptDiagnostic,
   type XFeedSourceContext,
+  type XFeedSourceRunDiagnostics,
 } from '../types.js'
 
 const FALLBACK_SOURCE_ID = 'x-fallback'
@@ -16,9 +18,7 @@ export interface XFallbackAttemptInfo {
 }
 
 export interface XFallbackSourceOptions {
-  /**
-   * Sources are attempted in order.
-   */
+  /** Sources are attempted in order. */
   sources: readonly XFeedSource[]
   /**
    * Continue to the next source when a source returns no posts.
@@ -26,15 +26,11 @@ export interface XFallbackSourceOptions {
    * accidentally fall through to a paid provider.
    */
   fallbackOnEmpty?: boolean
-  /**
-   * Optional diagnostics hook for every attempted source.
-   */
+  /** Optional diagnostics hook for every attempted source. */
   onAttempt?: (info: XFallbackAttemptInfo) => void
 }
 
-/**
- * Creates a source that attempts multiple providers in deterministic order.
- */
+/** Creates a source that attempts multiple providers in deterministic order. */
 export function createFallbackXSource(
   options: XFallbackSourceOptions,
 ): XFeedSource {
@@ -44,6 +40,7 @@ export function createFallbackXSource(
     false,
     'fallbackOnEmpty',
   )
+  let lastDiagnostics: XFeedSourceRunDiagnostics | null = null
 
   const includesExperimentalSource = sources.some(
     (source) => getXFeedSourceMetadata(source).stability === 'experimental',
@@ -60,16 +57,23 @@ export function createFallbackXSource(
         ? 'This fallback chain includes experimental X sources. Monitor failed attempts and stale-cache usage.'
         : null,
     },
+    getLastRunDiagnostics() {
+      return lastDiagnostics ? cloneDiagnostics(lastDiagnostics) : null
+    },
     async fetchPosts(context) {
       const errors: XFeedError[] = []
+      const attempts: XFeedSourceAttemptDiagnostic[] = []
+      lastDiagnostics = createDiagnostics(attempts, null)
 
       for (const [index, source] of sources.entries()) {
         if (context.signal.aborted) {
-          throw new XFeedError(
+          const error = new XFeedError(
             'REQUEST_ABORTED',
             'X fallback source was aborted.',
             { sourceId: FALLBACK_SOURCE_ID },
           )
+          lastDiagnostics = createDiagnostics(attempts, null)
+          throw error
         }
 
         try {
@@ -83,6 +87,15 @@ export function createFallbackXSource(
             )
           }
 
+          const outcome = posts.length === 0 ? 'empty' : 'success'
+          attempts.push({
+            sourceId: source.id,
+            index,
+            outcome,
+            errorCode: null,
+            status: null,
+          })
+
           if (posts.length === 0 && fallbackOnEmpty) {
             options.onAttempt?.({
               sourceId: source.id,
@@ -90,25 +103,35 @@ export function createFallbackXSource(
               outcome: 'empty',
               error: null,
             })
+            lastDiagnostics = createDiagnostics(attempts, null)
             continue
           }
 
           options.onAttempt?.({
             sourceId: source.id,
             index,
-            outcome: 'success',
+            outcome,
             error: null,
           })
+          lastDiagnostics = createDiagnostics(attempts, source.id)
           return posts
         } catch (error) {
           const normalizedError = normalizeAttemptError(error, source.id)
           errors.push(normalizedError)
+          attempts.push({
+            sourceId: source.id,
+            index,
+            outcome: 'error',
+            errorCode: normalizedError.code,
+            status: normalizedError.status,
+          })
           options.onAttempt?.({
             sourceId: source.id,
             index,
             outcome: 'error',
             error: normalizedError,
           })
+          lastDiagnostics = createDiagnostics(attempts, null)
         }
       }
 
@@ -121,6 +144,33 @@ export function createFallbackXSource(
         },
       )
     },
+  }
+}
+
+function createDiagnostics(
+  attempts: readonly XFeedSourceAttemptDiagnostic[],
+  selectedSourceId: string | null,
+): XFeedSourceRunDiagnostics {
+  return {
+    requestedSourceId: FALLBACK_SOURCE_ID,
+    selectedSourceId,
+    degraded:
+      attempts.some((attempt) => attempt.outcome === 'error') ||
+      (selectedSourceId === null
+        ? attempts.length > 0
+        : attempts.length > 1),
+    attempts: attempts.map((attempt) => ({ ...attempt })),
+  }
+}
+
+function cloneDiagnostics(
+  diagnostics: XFeedSourceRunDiagnostics,
+): XFeedSourceRunDiagnostics {
+  return {
+    requestedSourceId: diagnostics.requestedSourceId,
+    selectedSourceId: diagnostics.selectedSourceId,
+    degraded: diagnostics.degraded,
+    attempts: diagnostics.attempts.map((attempt) => ({ ...attempt })),
   }
 }
 

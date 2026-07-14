@@ -63,6 +63,23 @@ export interface XFeedSourceMetadata {
   warning: string | null
 }
 
+export type XFeedSourceAttemptOutcome = 'success' | 'empty' | 'error'
+
+export interface XFeedSourceAttemptDiagnostic {
+  sourceId: string
+  index: number
+  outcome: XFeedSourceAttemptOutcome
+  errorCode: XFeedErrorCode | null
+  status: number | null
+}
+
+export interface XFeedSourceRunDiagnostics {
+  requestedSourceId: string
+  selectedSourceId: string | null
+  degraded: boolean
+  attempts: readonly XFeedSourceAttemptDiagnostic[]
+}
+
 export interface XFeedSource {
   /**
    * Stable adapter identifier used in diagnostics.
@@ -77,6 +94,8 @@ export interface XFeedSource {
    * Fetches already normalized X posts. Credentials stay inside the adapter.
    */
   fetchPosts(context: XFeedSourceContext): Promise<readonly XPost[]>
+  /** Optional diagnostics for the most recent fetch attempt. */
+  getLastRunDiagnostics?(): XFeedSourceRunDiagnostics | null
 }
 
 export interface XPostAuthor {
@@ -147,6 +166,8 @@ export type XFeedErrorCode =
   | 'INVALID_RESPONSE'
   | 'CACHE_READ_FAILED'
   | 'CACHE_WRITE_FAILED'
+  | 'MONITOR_READ_FAILED'
+  | 'MONITOR_WRITE_FAILED'
 
 export class XFeedError extends Error {
   readonly code: XFeedErrorCode
