@@ -17,21 +17,20 @@ links, or provider requests into a visitor's page.
 
 ## Packages
 
-```text
-packages/
-└── github-feed/
-```
+    packages/
+    ├── github-feed/
+    └── x-feed/
+
+Current packages:
+
+    @dss-feeds/github-feed
+    @dss-feeds/x-feed
 
 Planned packages:
 
-```text
-@dss-feeds/github-feed
-@dss-feeds/instagram-feed
-@dss-feeds/x-feed
-```
+    @dss-feeds/instagram-feed
 
-Shared code will be extracted only after real duplication appears across
-at least two production integrations.
+Shared code will be extracted only after real duplication appears across at least two production integrations.
 
 ## Commands
 
