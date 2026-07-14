@@ -4,6 +4,19 @@ export { readXFeedSourceRunDiagnostics } from './source-diagnostics.js'
 export { createMemoryXFeedSnapshotStore } from './memory-store.js'
 export { createMemoryXFeedMonitorStore } from './memory-monitor-store.js'
 export {
+  executeXFeedSync,
+  type ExecuteXFeedSyncOptions,
+  type XFeedExecutionReason,
+  type XFeedSyncExecutionReport,
+} from './orchestration.js'
+export {
+  assertXFeedRunLockKey,
+  createMemoryXFeedRunLock,
+  type MemoryXFeedRunLock,
+  type XFeedRunLease,
+  type XFeedRunLock,
+} from './run-lock.js'
+export {
   X_FEED_ADAPTER_VERSION,
   X_FEED_SNAPSHOT_VERSION,
   assertXFeedCacheKey,

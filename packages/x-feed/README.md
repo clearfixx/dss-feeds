@@ -21,11 +21,12 @@ The package currently owns:
 - deterministic source fallback;
 - framework-agnostic snapshot storage, synchronization, and stale-cache reads;
 - persistent health state, degradation thresholds, and recovery events;
-- optional Payload cache/settings storage adapters.
+- optional Payload cache/settings storage adapters;
+- single-flight sync orchestration, scheduled Payload jobs, and a protected manual endpoint.
 
 It intentionally does **not** include:
 
-- Payload jobs, endpoints, or admin presentation UI;
+- Payload plugin composition or admin presentation UI;
 - React presentation components;
 - Portfolio-specific markup, class names, or design tokens.
 
@@ -315,10 +316,39 @@ returns. Cooldown state prevents repeated notification spam.
 The package emits events but does not send email itself. Notification transport
 belongs to the consuming application.
 
-## Payload persistence
+## Sync orchestration
 
-The optional Payload subpath provides collection/global factories and storage
-adapters without coupling the core package to Payload at runtime:
+`executeXFeedSync` adds an optional single-flight lock around monitored
+synchronization and returns a structured execution report suitable for jobs,
+HTTP endpoints, CLIs, and tests:
+
+```ts
+import {
+  createMemoryXFeedRunLock,
+  executeXFeedSync,
+} from '@dss-feeds/x-feed'
+
+const report = await executeXFeedSync({
+  source,
+  snapshotStore: store,
+  monitorStore,
+  lock: createMemoryXFeedRunLock(),
+  trigger: 'manual',
+  force: true,
+  config: { username: 'your_handle' },
+})
+```
+
+The in-memory lock protects a single Node.js process. Payload jobs additionally
+use an exclusive concurrency key, which is the production coordination layer
+for queued scheduled and manual runs. Consumers that require another locking
+backend can implement the two-method `XFeedRunLock` contract.
+
+## Payload persistence and jobs
+
+The optional Payload subpath provides collection/global factories, storage
+adapters, runtime source resolution, an exclusive scheduled task, and a
+protected endpoint without coupling the core package to Payload at runtime:
 
 ```ts
 import {
@@ -326,6 +356,8 @@ import {
   createPayloadXFeedSnapshotStore,
   createXFeedCacheCollection,
   createXFeedSettingsGlobal,
+  createXFeedSyncEndpoint,
+  createXFeedSyncTask,
 } from '@dss-feeds/x-feed/payload'
 ```
 
@@ -335,12 +367,17 @@ count, freshness, and next synchronization time. `createXFeedSettingsGlobal`
 contains provider selection, cache policy, failure threshold, cooldown, and the
 persistent monitor state.
 
+The task reads source and cache policy from the settings global, resolves server
+credentials from environment variables, runs the cache/monitor lifecycle, and
+persists a structured job result. The endpoint queues a forced run and accepts
+either an authenticated Payload user or a timing-safe bearer secret.
+
 The settings schema labels Nitter-compatible and RSSHub modes as experimental.
 A custom red admin warning component will be added with the full Payload plugin.
 
 ## Planned slices
 
-1. Payload jobs, manual endpoint, and plugin composition;
-2. Payload admin monitor and red experimental-source warning;
+1. Payload plugin composition and admin monitor;
+2. red experimental-source warning and manual-sync UI;
 3. neutral React component and optional CSS;
 4. Portfolio integration, email transport, and Portfolio-only theme.
