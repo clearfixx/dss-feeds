@@ -1,0 +1,214 @@
+.dss-x-feed {
+  --dss-x-bg: Canvas;
+  --dss-x-surface: color-mix(in srgb, Canvas 94%, CanvasText 6%);
+  --dss-x-border: color-mix(in srgb, CanvasText 18%, transparent);
+  --dss-x-text: CanvasText;
+  --dss-x-muted: color-mix(in srgb, CanvasText 62%, transparent);
+  --dss-x-accent: LinkText;
+  --dss-x-radius: 0.875rem;
+  --dss-x-gap: 1rem;
+  color: var(--dss-x-text);
+  color-scheme: light dark;
+  font: inherit;
+}
+
+.dss-x-feed *,
+.dss-x-feed *::before,
+.dss-x-feed *::after {
+  box-sizing: border-box;
+}
+
+.dss-x-feed__heading {
+  margin-block-end: var(--dss-x-gap);
+}
+
+.dss-x-feed__notice,
+.dss-x-feed__empty {
+  border: 1px solid var(--dss-x-border);
+  border-radius: var(--dss-x-radius);
+  background: var(--dss-x-surface);
+  padding: 0.875rem 1rem;
+  color: var(--dss-x-muted);
+}
+
+.dss-x-feed__notice {
+  margin-block-end: var(--dss-x-gap);
+}
+
+.dss-x-feed__list {
+  display: grid;
+  gap: var(--dss-x-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dss-x-feed__item {
+  min-width: 0;
+}
+
+.dss-x-post {
+  border: 1px solid var(--dss-x-border);
+  border-radius: var(--dss-x-radius);
+  background: var(--dss-x-bg);
+  padding: 1rem;
+}
+
+.dss-x-post__header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dss-x-post__avatar,
+.dss-x-post__avatar-fallback {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+}
+
+.dss-x-post__avatar {
+  object-fit: cover;
+}
+
+.dss-x-post__avatar-fallback {
+  display: grid;
+  place-items: center;
+  background: var(--dss-x-surface);
+  color: var(--dss-x-muted);
+  font-weight: 700;
+}
+
+.dss-x-post__identity {
+  display: grid;
+  min-width: 0;
+}
+
+.dss-x-post__name {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dss-x-post__verified {
+  display: inline-flex;
+  margin-inline-start: 0.35rem;
+  color: var(--dss-x-accent);
+  vertical-align: middle;
+}
+
+.dss-x-post__username,
+.dss-x-post__date-link {
+  color: var(--dss-x-muted);
+  font-size: 0.875em;
+}
+
+.dss-x-post__date-link {
+  text-decoration: none;
+}
+
+.dss-x-post__date-link:hover,
+.dss-x-post__date-link:focus-visible {
+  color: var(--dss-x-accent);
+  text-decoration: underline;
+}
+
+.dss-x-post__text {
+  margin: 0.875rem 0 0;
+  overflow-wrap: anywhere;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.dss-x-post__media {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-block-start: 0.875rem;
+  overflow: hidden;
+  border-radius: calc(var(--dss-x-radius) - 0.25rem);
+}
+
+.dss-x-post__media[data-count='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dss-x-post__media-link {
+  position: relative;
+  display: block;
+  min-height: 8rem;
+  overflow: hidden;
+  background: var(--dss-x-surface);
+}
+
+.dss-x-post__media-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 28rem;
+  object-fit: cover;
+}
+
+.dss-x-post__media-badge {
+  position: absolute;
+  inset-inline-end: 0.625rem;
+  inset-block-end: 0.625rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, Canvas 78%, transparent);
+  padding: 0.25rem 0.5rem;
+  color: CanvasText;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.dss-x-post__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin: 0.875rem 0 0;
+  color: var(--dss-x-muted);
+  font-size: 0.875em;
+}
+
+.dss-x-post__metric {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.dss-x-post__metric-label,
+.dss-x-post__metric-value {
+  margin: 0;
+}
+
+.dss-x-post__metric-value {
+  color: var(--dss-x-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.dss-x-feed__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 34rem) {
+  .dss-x-post__header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dss-x-post__date-link {
+    grid-column: 2;
+  }
+
+  .dss-x-post__media {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

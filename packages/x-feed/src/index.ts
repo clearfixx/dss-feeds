@@ -86,3 +86,12 @@ export {
   type XPostReference,
   type XPostReferenceType,
 } from './types.js'
+export {
+  readXFeedPublic,
+  type XFeedPublicAuthor,
+  type XFeedPublicMedia,
+  type XFeedPublicPost,
+  type XFeedPublicReadOptions,
+  type XFeedPublicResult,
+} from './public.js'
+

@@ -40,3 +40,8 @@ export {
   createXFeedStatusEndpoint,
   type CreateXFeedStatusEndpointOptions,
 } from './status-endpoint.js'
+export {
+  readPayloadXFeed,
+  type ReadPayloadXFeedOptions,
+} from './read.js'
+

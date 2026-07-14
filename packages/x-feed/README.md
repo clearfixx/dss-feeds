@@ -23,12 +23,12 @@ The package currently owns:
 - persistent health state, degradation thresholds, and recovery events;
 - optional Payload cache/settings storage adapters;
 - single-flight sync orchestration, scheduled Payload jobs, and protected endpoints;
-- an opt-in neutral Payload Admin live monitor.
+- an opt-in neutral Payload Admin live monitor;
+- cache-only public read helpers and a neutral React presentation layer.
 
 It intentionally does **not** include:
 
 - Payload plugin composition;
-- React presentation components;
 - Portfolio-specific markup, class names, or design tokens.
 
 Provider-specific credentials are captured by server-side source adapters and
@@ -376,13 +376,58 @@ either an authenticated Payload user or a timing-safe bearer secret.
 The settings schema labels Nitter-compatible and RSSHub modes as experimental.
 A custom red admin warning component will be added with the full Payload plugin.
 
+## Public read API
+
+Visitor-facing rendering reads only validated local snapshots. It never calls X,
+Nitter, RSSHub, or another provider during a page request:
+
+```ts
+import { readPayloadXFeed } from '@dss-feeds/x-feed/payload'
+
+const feed = await readPayloadXFeed({
+  payload,
+  username: 'your_handle',
+  postCount: 5,
+})
+```
+
+The public result intentionally omits cache keys, checksums, source diagnostics,
+numeric author IDs, conversation IDs, and raw references. It exposes only the
+post fields required by a presentation layer plus `fresh`/`stale` availability.
+
+Applications without Payload can call `readXFeedPublic` with any
+`XFeedSnapshotStore` implementation.
+
+## Neutral React presentation
+
+```tsx
+import { XFeed } from '@dss-feeds/x-feed/react'
+import '@dss-feeds/x-feed/styles.css'
+
+export function LatestPosts({ feed }) {
+  return <XFeed feed={feed} heading={<h2>Latest posts</h2>} />
+}
+```
+
+The React layer is server-rendering friendly and does not use provider embeds,
+iframes, tracking scripts, or client-side provider requests. It includes:
+
+- semantic feed and article markup;
+- stale, empty, and unavailable states;
+- lazy image and video-preview rendering;
+- engagement metrics;
+- deterministic date formatting with an explicit locale;
+- customizable labels, classes, render callbacks, and date formatters;
+- a neutral optional stylesheet built from system colors and CSS variables.
+
+The stylesheet contains no Portfolio brand colors or layout assumptions.
+Consumers can omit it and style the stable `dss-x-*` classes themselves.
+
 ## Planned slices
 
-1. Payload plugin composition and admin monitor;
-2. red experimental-source warning and manual-sync UI;
-3. neutral React component and optional CSS;
-4. Portfolio integration, email transport, and Portfolio-only theme.
-
+1. Payload plugin composition and notification transport examples;
+2. npm publication hardening and package documentation;
+3. Portfolio integration and Portfolio-only `X Signals` theme.
 
 ## Payload Admin monitor
 
