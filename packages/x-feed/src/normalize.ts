@@ -71,14 +71,19 @@ function normalizeAuthor(value: unknown, sourceId: string): XPostAuthor {
     throw invalidPost(sourceId)
   }
 
-  const id = readXId(value.id)
+  const id =
+    value.id === null || value.id === undefined ? null : readXId(value.id)
   const username = readXUsername(value.username)
   const name = readRequiredString(value.name, 256)
   const profileImageUrl = readNullableHttpsUrl(value.profileImageUrl)
   const verified = readNullableBoolean(value.verified)
   const protectedAccount = readNullableBoolean(value.protected)
 
-  if (!id || !username || !name) {
+  if (
+    (value.id !== null && value.id !== undefined && !id) ||
+    !username ||
+    !name
+  ) {
     throw invalidPost(sourceId)
   }
 

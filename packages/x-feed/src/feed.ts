@@ -2,6 +2,7 @@ import { normalizeXPost } from './normalize.js'
 import {
   assertXFeedSource,
   resolveXFeedConfig,
+  resolveXFeedSinceId,
 } from './security.js'
 import {
   XFeedError,
@@ -29,6 +30,7 @@ export async function collectXPosts(
     payload = await validatedSource.fetchPosts({
       config: resolvedConfig,
       signal: requestSignal.signal,
+      sinceId: resolveXFeedSinceId(options.sinceId),
     })
   } catch (error) {
     if (error instanceof XFeedError) {

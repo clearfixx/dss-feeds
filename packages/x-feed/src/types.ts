@@ -31,11 +31,36 @@ export interface ResolvedXFeedConfig {
 
 export interface XFeedRequestOptions {
   signal?: AbortSignal
+  /**
+   * Fetch only posts newer than this X post ID when the source supports it.
+   */
+  sinceId?: string
 }
 
 export interface XFeedSourceContext {
   config: ResolvedXFeedConfig
   signal: AbortSignal
+  sinceId: string | null
+}
+
+export type XFeedSourceKind =
+  | 'official-api'
+  | 'rss-bridge'
+  | 'fallback'
+  | 'custom'
+
+export type XFeedSourceStability =
+  | 'stable'
+  | 'experimental'
+  | 'composite'
+  | 'unknown'
+
+export interface XFeedSourceMetadata {
+  kind: XFeedSourceKind
+  stability: XFeedSourceStability
+  label: string
+  official: boolean | null
+  warning: string | null
 }
 
 export interface XFeedSource {
@@ -44,13 +69,21 @@ export interface XFeedSource {
    */
   readonly id: string
   /**
+   * Optional operational metadata for admin UIs and monitoring.
+   * Built-in adapters always provide it; custom sources may omit it.
+   */
+  readonly metadata?: XFeedSourceMetadata
+  /**
    * Fetches already normalized X posts. Credentials stay inside the adapter.
    */
   fetchPosts(context: XFeedSourceContext): Promise<readonly XPost[]>
 }
 
 export interface XPostAuthor {
-  id: string
+  /**
+   * Numeric X user ID when the source can resolve it. RSS sources may omit it.
+   */
+  id: string | null
   username: string
   name: string
   profileImageUrl: string | null
@@ -106,6 +139,10 @@ export type XFeedErrorCode =
   | 'INVALID_CONFIGURATION'
   | 'INVALID_SOURCE'
   | 'REQUEST_ABORTED'
+  | 'AUTHENTICATION_FAILED'
+  | 'ACCESS_FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'RATE_LIMITED'
   | 'REQUEST_FAILED'
   | 'INVALID_RESPONSE'
 

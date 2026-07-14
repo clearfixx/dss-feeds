@@ -2,7 +2,7 @@
   "name": "@dss-feeds/x-feed",
   "version": "0.0.0",
   "private": true,
-  "description": "Source-agnostic cache-first X post feed foundation.",
+  "description": "Cache-first X post feed contracts with official API, RSS, and fallback sources.",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -13,6 +13,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./source/x-api": {
+      "types": "./dist/source/x-api.d.ts",
+      "import": "./dist/source/x-api.js",
+      "default": "./dist/source/x-api.js"
+    },
+    "./source/rss": {
+      "types": "./dist/source/rss.d.ts",
+      "import": "./dist/source/rss.js",
+      "default": "./dist/source/rss.js"
+    },
+    "./source/fallback": {
+      "types": "./dist/source/fallback.d.ts",
+      "import": "./dist/source/fallback.js",
+      "default": "./dist/source/fallback.js"
     },
     "./package.json": "./package.json"
   },

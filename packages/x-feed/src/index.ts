@@ -1,4 +1,5 @@
 export { collectXPosts } from './feed.js'
+export { getXFeedSourceMetadata } from './source-metadata.js'
 
 export {
   XFeedError,
@@ -8,6 +9,9 @@ export {
   type XFeedRequestOptions,
   type XFeedSource,
   type XFeedSourceContext,
+  type XFeedSourceKind,
+  type XFeedSourceMetadata,
+  type XFeedSourceStability,
   type XPost,
   type XPostAuthor,
   type XPostMedia,

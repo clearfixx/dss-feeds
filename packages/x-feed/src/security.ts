@@ -6,6 +6,7 @@ import {
 } from './types.js'
 
 const X_USERNAME_PATTERN = /^[A-Za-z0-9_]+$/
+const X_ID_PATTERN = /^[0-9]{1,19}$/
 const SOURCE_ID_PATTERN = /^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$/
 
 const DEFAULT_POST_LIMIT = 10
@@ -46,6 +47,18 @@ export function resolveXFeedConfig(config: XFeedConfig): ResolvedXFeedConfig {
       'timeoutMs',
     ),
   }
+}
+
+export function resolveXFeedSinceId(sinceId: string | undefined): string | null {
+  if (sinceId === undefined) {
+    return null
+  }
+
+  if (typeof sinceId !== 'string' || !X_ID_PATTERN.test(sinceId)) {
+    throw invalidConfiguration('sinceId must be a valid X post ID.')
+  }
+
+  return sinceId
 }
 
 export function assertXFeedSource(source: XFeedSource): XFeedSource {
