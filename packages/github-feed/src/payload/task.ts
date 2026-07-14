@@ -76,7 +76,7 @@ export function createGitHubFeedSyncTask(
           'github:default'
         }`,
       exclusive: true,
-      supersedes: true,
+      supersedes: false,
     },
     ...(scheduleEnabled
       ? {

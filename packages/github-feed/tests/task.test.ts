@@ -48,7 +48,7 @@ describe(
           task.concurrency,
         ).toMatchObject({
           exclusive: true,
-          supersedes: true,
+          supersedes: false,
         })
 
         const key =

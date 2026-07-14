@@ -561,12 +561,20 @@ function parseRuntimeStatus(
     readOptionalString(
       value.monitorRunId,
     )
-  const commitCount =
-    readNonNegativeInteger(
-      value.monitorCommitCount,
-      previous.cache
-        .cachedCommitCount,
-    )
+            const hasRuntimeRun =
+            status !== null &&
+            status !== 'idle' &&
+            Boolean(runId)
+          const commitCount =
+            hasRuntimeRun
+              ? readNonNegativeInteger(
+                  value.monitorCommitCount,
+                  previous.cache
+                    .cachedCommitCount,
+                )
+              : previous.cache
+                  .cachedCommitCount
+
   const generatedAt =
     readDate(
       value.monitorGeneratedAt,
