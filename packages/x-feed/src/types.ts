@@ -145,6 +145,8 @@ export type XFeedErrorCode =
   | 'RATE_LIMITED'
   | 'REQUEST_FAILED'
   | 'INVALID_RESPONSE'
+  | 'CACHE_READ_FAILED'
+  | 'CACHE_WRITE_FAILED'
 
 export class XFeedError extends Error {
   readonly code: XFeedErrorCode

@@ -18,7 +18,8 @@ The package currently owns:
 - deterministic deduplication, ordering, and limits;
 - an official X API v2 source adapter;
 - lightweight Nitter-compatible and RSSHub source adapters;
-- deterministic source fallback.
+- deterministic source fallback;
+- framework-agnostic snapshot storage, synchronization, and stale-cache reads.
 
 It intentionally does **not** include:
 
@@ -217,9 +218,59 @@ prevents an incremental sync with no new posts from unnecessarily falling
 through to a paid provider. Set `fallbackOnEmpty: true` only when an empty feed
 should be treated as an unavailable source.
 
+## Cache and synchronization lifecycle
+
+The cache core depends on a two-method storage boundary and can therefore use a
+CMS, SQL database, KV store, file, or custom backend without changing provider
+code:
+
+```ts
+import {
+  createMemoryXFeedSnapshotStore,
+  readXFeedSnapshot,
+  synchronizeXFeed,
+} from '@dss-feeds/x-feed'
+
+const store = createMemoryXFeedSnapshotStore()
+
+await synchronizeXFeed({
+  source,
+  store,
+  config: {
+    username: 'your_handle',
+    postLimit: 10,
+  },
+})
+
+const feed = await readXFeedSnapshot({
+  store,
+  key: 'x:your_handle',
+  postCount: 5,
+})
+```
+
+Successful synchronization:
+
+- skips provider traffic until `nextSyncAt` unless forced;
+- uses the newest cached post ID as `sinceId` by default;
+- merges new posts into the previous snapshot;
+- keeps richer cached metadata when an RSS bridge returns reduced fields;
+- retains cached posts when an incremental request returns no new posts;
+- refreshes fresh/stale lifetimes after every successful request;
+- validates persisted snapshots and their checksums before use;
+- never modifies the previous snapshot when provider synchronization fails.
+
+`readXFeedSnapshot` never throws for storage availability problems. It returns
+`empty`, `fresh`, `stale`, `expired`, `invalid`, or `unavailable`, allowing the
+rendering layer to remain provider-independent and visitor-safe.
+
+The included memory store is intended for tests, examples, and single-process
+development. Production persistence is supplied by a future Payload adapter or
+another application-defined `XFeedSnapshotStore`.
+
 ## Planned slices
 
-1. cache and synchronization lifecycle;
-2. Payload CMS plugin and persistent admin monitor;
+1. Payload CMS plugin and persistent admin monitor;
+2. failure thresholds, notification events, and recovery state;
 3. neutral React component and optional CSS;
 4. Portfolio integration and Portfolio-only theme.
