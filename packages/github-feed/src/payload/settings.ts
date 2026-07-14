@@ -94,6 +94,20 @@ export function createGitHubFeedSettings(
         },
       },
       {
+        name: 'displayCommitLimit',
+        type: 'number',
+        defaultValue: 2,
+        min: 1,
+        max: 10,
+        required: true,
+        label: 'Displayed commit limit',
+        admin: {
+          description:
+            'Maximum number of cached commits rendered by public views. This does not reduce the active snapshot.',
+          step: 1,
+        },
+      },
+      {
         name: 'syncIntervalHours',
         type: 'number',
         defaultValue: 1,

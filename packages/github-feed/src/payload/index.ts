@@ -57,3 +57,11 @@ export {
   DEFAULT_GITHUB_FEED_TASK_SLUG,
   type CreateGitHubFeedSyncTaskOptions,
 } from './task.js'
+export {
+  DEFAULT_GITHUB_FEED_DISPLAY_COMMIT_LIMIT,
+  MAX_GITHUB_FEED_DISPLAY_COMMIT_LIMIT,
+  readGitHubFeedDisplaySettings,
+  resolveGitHubFeedDisplayCommitLimit,
+  type GitHubFeedDisplaySettings,
+  type ReadGitHubFeedDisplaySettingsOptions,
+} from './display.js'

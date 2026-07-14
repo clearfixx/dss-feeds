@@ -44,3 +44,11 @@ export {
   readPayloadXFeed,
   type ReadPayloadXFeedOptions,
 } from './read.js'
+export {
+  DEFAULT_X_FEED_DISPLAY_POST_LIMIT,
+  MAX_X_FEED_DISPLAY_POST_LIMIT,
+  readXFeedDisplaySettings,
+  resolveXFeedDisplayPostLimit,
+  type ReadXFeedDisplaySettingsOptions,
+  type XFeedDisplaySettings,
+} from './display.js'

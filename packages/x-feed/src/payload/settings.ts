@@ -86,6 +86,20 @@ export function createXFeedSettingsGlobal(
         max: 100,
         required: true,
       },
+    {
+      name: 'displayPostLimit',
+      type: 'number',
+      defaultValue: 3,
+      min: 1,
+      max: 5,
+      required: true,
+      label: 'Displayed post limit',
+      admin: {
+        description:
+          'Maximum number of cached posts rendered by public views. This does not reduce the active snapshot.',
+        step: 1,
+      },
+    },
       { name: 'excludeReplies', type: 'checkbox', defaultValue: true },
       { name: 'excludeReposts', type: 'checkbox', defaultValue: true },
       {
