@@ -25,7 +25,22 @@ export {
 export {
   createGitHubFeedSettings,
   type CreateGitHubFeedSettingsOptions,
+  type GitHubFeedMonitorFieldOptions,
 } from './settings.js'
+export {
+  beginGitHubFeedRun,
+  completeGitHubFeedRun,
+  failGitHubFeedRun,
+  readGitHubFeedRuntimeState,
+  type BeginGitHubFeedRunOptions,
+  type CompleteGitHubFeedRunOptions,
+  type FailGitHubFeedRunOptions,
+  type GitHubFeedRunContext,
+  type GitHubFeedRuntimeState,
+  type GitHubFeedRuntimeStatus,
+  type GitHubFeedRuntimeTrigger,
+  type ReadGitHubFeedRuntimeStateOptions,
+} from './state.js'
 export {
   createCommitChecksum,
   GITHUB_FEED_ADAPTER_VERSION,

@@ -1,4 +1,5 @@
 import type {
+  Field,
   GlobalConfig,
 } from 'payload'
 
@@ -13,6 +14,7 @@ export interface GitHubFeedMonitorFieldOptions {
   taskSlug: string
   syncEndpointPath: string
   jobLimit?: number
+  pollIntervalMs?: number
 }
 
 export interface CreateGitHubFeedSettingsOptions {
@@ -136,6 +138,7 @@ export function createGitHubFeedSettings(
           step: 1,
         },
       },
+      ...createRuntimeFields(),
       {
         name: 'monitor',
         type: 'ui',
@@ -152,6 +155,8 @@ export function createGitHubFeedSettings(
               exportName:
                 'GitHubFeedMonitor',
               serverProps: {
+                settingsSlug:
+                  options.slug,
                 cacheSlug:
                   options.monitor
                     .cacheSlug,
@@ -167,6 +172,10 @@ export function createGitHubFeedSettings(
                 jobLimit:
                   options.monitor
                     .jobLimit ?? 5,
+                pollIntervalMs:
+                  options.monitor
+                    .pollIntervalMs ??
+                  1500,
               },
             },
           },
@@ -174,4 +183,181 @@ export function createGitHubFeedSettings(
       },
     ],
   }
+}
+
+function createRuntimeFields():
+  Field[] {
+  const hiddenAdmin = {
+    hidden: true,
+  } as const
+
+  return [
+    {
+      name: 'monitorStatus',
+      type: 'select',
+      defaultValue: 'idle',
+      options: [
+        {
+          label: 'Idle',
+          value: 'idle',
+        },
+        {
+          label: 'Running',
+          value: 'running',
+        },
+        {
+          label: 'Success',
+          value: 'success',
+        },
+        {
+          label: 'Skipped',
+          value: 'skipped',
+        },
+        {
+          label: 'Error',
+          value: 'error',
+        },
+      ],
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorRunId',
+      type: 'text',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorTrigger',
+      type: 'select',
+      options: [
+        {
+          label: 'Schedule',
+          value: 'schedule',
+        },
+        {
+          label: 'Manual',
+          value: 'manual',
+        },
+        {
+          label: 'Endpoint',
+          value: 'endpoint',
+        },
+      ],
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorAttemptCount',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorLastAttemptAt',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorLastSuccessAt',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorCompletedAt',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorDurationMs',
+      type: 'number',
+      min: 0,
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorCommitCount',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorChecksum',
+      type: 'text',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorGeneratedAt',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorFreshUntil',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorStaleUntil',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorNextSyncAt',
+      type: 'date',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorAdapterVersion',
+      type: 'text',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorLastError',
+      type: 'textarea',
+      admin: hiddenAdmin,
+    },
+    {
+      name: 'monitorEvents',
+      type: 'array',
+      maxRows: 20,
+      admin: hiddenAdmin,
+      fields: [
+        {
+          name: 'level',
+          type: 'select',
+          required: true,
+          options: [
+            {
+              label: 'Info',
+              value: 'info',
+            },
+            {
+              label: 'Success',
+              value: 'success',
+            },
+            {
+              label: 'Warning',
+              value: 'warning',
+            },
+            {
+              label: 'Error',
+              value: 'error',
+            },
+          ],
+        },
+        {
+          name: 'message',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'timestamp',
+          type: 'date',
+          required: true,
+        },
+        {
+          name: 'context',
+          type: 'json',
+        },
+      ],
+    },
+  ]
 }

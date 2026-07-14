@@ -84,3 +84,14 @@ pnpm payload jobs:run \
   --queue dss-github-feed \
   --handle-schedules
 ```
+## Persistent live monitor
+
+Synchronization history is stored in hidden fields of the settings Global, not
+only in temporary `payload-jobs` documents. The monitor therefore keeps the
+latest status, duration, attempt count, error, cache metadata, and 20 structured
+events after Payload removes a completed job.
+
+`Refresh status` reads the authenticated Payload Global endpoint without a page
+reload. After `Regenerate cache`, the monitor polls that local endpoint until a
+new run reaches `success`, `skipped`, or `error`. The browser never contacts
+GitHub directly.

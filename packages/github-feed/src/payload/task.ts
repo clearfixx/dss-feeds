@@ -1,6 +1,11 @@
 import type { TaskConfig } from 'payload'
 
 import {
+  beginGitHubFeedRun,
+  completeGitHubFeedRun,
+  failGitHubFeedRun,
+} from './state.js'
+import {
   synchronizeGitHubFeed,
   type GitHubFeedSyncLogEntry,
 } from './sync.js'
@@ -67,7 +72,8 @@ export function createGitHubFeedSyncTask(
     concurrency: {
       key: () =>
         `dss-github-feed:${
-          options.cacheKey ?? 'github:default'
+          options.cacheKey ??
+          'github:default'
         }`,
       exclusive: true,
       supersedes: true,
@@ -218,75 +224,132 @@ export function createGitHubFeedSyncTask(
     handler: async ({ input, req }) => {
       const taskInput =
         (input ?? {}) as GitHubFeedTaskInput
-      const events: GitHubFeedSyncLogEntry[] = []
       const trigger =
         taskInput.trigger ?? 'schedule'
-      const force = taskInput.force === true
-      const now = options.now?.() ?? new Date()
+      const force =
+        taskInput.force === true
+      const startedAt =
+        options.now?.() ?? new Date()
+      const events:
+        GitHubFeedSyncLogEntry[] = []
 
-      const result = await synchronizeGitHubFeed({
-        payload: req.payload,
-        token:
-          process.env[
-            tokenEnvironmentVariable
-          ],
-        fetch: options.fetch,
-        now,
-        force,
-        settingsSlug: options.settingsSlug,
-        cacheSlug: options.cacheSlug,
-        cacheKey: options.cacheKey,
-        onLog(entry) {
-          events.push(entry)
-        },
+      const context =
+        await beginGitHubFeedRun({
+          payload: req.payload,
+          settingsSlug:
+            options.settingsSlug,
+          trigger,
+          now: startedAt,
+        })
+
+      events.push({
+        level: 'info',
+        message:
+          `Synchronization trigger: ${trigger}.`,
+        timestamp:
+          startedAt.toISOString(),
       })
 
-      return {
-        output: {
-          status: result.status,
-          ...(result.reason
-            ? { reason: result.reason }
-            : {}),
-          created: result.created,
-          changed: result.changed,
-          commitCount: result.commitCount,
-          ...(result.checksum
-            ? { checksum: result.checksum }
-            : {}),
-          ...(result.generatedAt
-            ? {
-                generatedAt:
-                  result.generatedAt,
-              }
-            : {}),
-          ...(result.freshUntil
-            ? {
-                freshUntil:
-                  result.freshUntil,
-              }
-            : {}),
-          ...(result.staleUntil
-            ? {
-                staleUntil:
-                  result.staleUntil,
-              }
-            : {}),
-          ...(result.nextSyncAt
-            ? {
-                nextSyncAt:
-                  result.nextSyncAt,
-              }
-            : {}),
-          events: [
-            {
-              level: 'info',
-              message:
-                `Synchronization trigger: ${trigger}.`,
-              timestamp: now.toISOString(),
+      try {
+        const result =
+          await synchronizeGitHubFeed({
+            payload: req.payload,
+            token:
+              process.env[
+                tokenEnvironmentVariable
+              ],
+            fetch: options.fetch,
+            now: startedAt,
+            force,
+            settingsSlug:
+              options.settingsSlug,
+            cacheSlug:
+              options.cacheSlug,
+            cacheKey:
+              options.cacheKey,
+            onLog(entry) {
+              events.push(entry)
             },
-            ...events,
-          ],
-        },
+          })
+
+        const completedAt =
+          options.now?.() ??
+          new Date()
+
+        await completeGitHubFeedRun({
+          payload: req.payload,
+          settingsSlug:
+            options.settingsSlug,
+          context,
+          result,
+          events,
+          completedAt,
+        })
+
+        return {
+          output: {
+            status: result.status,
+            ...(result.reason
+              ? {
+                  reason:
+                    result.reason,
+                }
+              : {}),
+            created:
+              result.created,
+            changed:
+              result.changed,
+            commitCount:
+              result.commitCount,
+            ...(result.checksum
+              ? {
+                  checksum:
+                    result.checksum,
+                }
+              : {}),
+            ...(result.generatedAt
+              ? {
+                  generatedAt:
+                    result.generatedAt,
+                }
+              : {}),
+            ...(result.freshUntil
+              ? {
+                  freshUntil:
+                    result.freshUntil,
+                }
+              : {}),
+            ...(result.staleUntil
+              ? {
+                  staleUntil:
+                    result.staleUntil,
+                }
+              : {}),
+            ...(result.nextSyncAt
+              ? {
+                  nextSyncAt:
+                    result.nextSyncAt,
+                }
+              : {}),
+            events,
+          },
+        }
+      } catch (error) {
+        const completedAt =
+          options.now?.() ??
+          new Date()
+
+        await failGitHubFeedRun({
+          payload: req.payload,
+          settingsSlug:
+            options.settingsSlug,
+          context,
+          events,
+          completedAt,
+          error,
+        })
+
+        throw error
       }
     },
   }
@@ -312,7 +375,8 @@ function assertTaskIdentifier(
 function assertCronExpression(
   value: string,
 ): void {
-  const fields = value.trim().split(/\s+/)
+  const fields =
+    value.trim().split(/\s+/)
 
   if (
     fields.length !== 5 &&

@@ -309,3 +309,47 @@
     padding-inline-start: 5.1rem;
   }
 }
+/* DSS GitHub Feed live monitor overrides */
+.dss-github-monitor {
+  --dss-monitor-action: #238636;
+  --dss-monitor-action-hover: #2ea043;
+}
+
+.dss-github-monitor-status--queued,
+.dss-github-monitor-status--running {
+  color: #58a6ff;
+}
+
+.dss-github-monitor-status--skipped {
+  color: var(--dss-monitor-warning);
+}
+
+.dss-github-monitor-button--primary {
+  color: #ffffff !important;
+  border-color:
+    var(--dss-monitor-action) !important;
+  background:
+    var(--dss-monitor-action) !important;
+}
+
+.dss-github-monitor-button--primary:hover:not(:disabled) {
+  border-color:
+    var(--dss-monitor-action-hover) !important;
+  background:
+    var(--dss-monitor-action-hover) !important;
+}
+
+.dss-github-monitor-button--secondary {
+  color:
+    var(--dss-monitor-text) !important;
+  border-color:
+    var(--dss-monitor-border) !important;
+  background: transparent !important;
+}
+
+.dss-github-monitor-button--secondary:hover:not(:disabled) {
+  border-color:
+    var(--dss-monitor-text) !important;
+  background:
+    var(--dss-monitor-surface-strong) !important;
+}

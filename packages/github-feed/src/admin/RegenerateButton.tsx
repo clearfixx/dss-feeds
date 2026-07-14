@@ -1,116 +1,59 @@
 'use client'
 
-import {
-  useEffect,
-  useRef,
-  useState,
-} from 'react'
-
-export interface RegenerateGitHubFeedButtonProps {
-  endpointURL: string
-}
-
-type ActionState =
+export type GitHubFeedMonitorActionState =
   | 'idle'
+  | 'refreshing'
   | 'queueing'
   | 'queued'
+  | 'running'
+  | 'success'
   | 'error'
 
+export interface RegenerateGitHubFeedButtonProps {
+  state: GitHubFeedMonitorActionState
+  message: string | null
+  onRefresh: () => void
+  onRegenerate: () => void
+}
+
 export function RegenerateGitHubFeedButton({
-  endpointURL,
+  state,
+  message,
+  onRefresh,
+  onRegenerate,
 }: RegenerateGitHubFeedButtonProps) {
-  const [state, setState] =
-    useState<ActionState>('idle')
-  const [message, setMessage] =
-    useState<string | null>(null)
-  const reloadTimer =
-    useRef<
-      ReturnType<typeof setTimeout>
-      | null
-    >(null)
-
-  useEffect(() => {
-    return () => {
-      if (reloadTimer.current) {
-        clearTimeout(
-          reloadTimer.current,
-        )
-      }
-    }
-  }, [])
-
-  async function queueSynchronization() {
-    setState('queueing')
-    setMessage(
-      'Queueing cache regeneration…',
-    )
-
-    try {
-      const response = await fetch(
-        endpointURL,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            Accept: 'application/json',
-          },
-        },
-      )
-
-      if (!response.ok) {
-        throw new Error(
-          `Queue request failed with HTTP ${response.status}.`,
-        )
-      }
-
-      setState('queued')
-      setMessage(
-        'Synchronization queued. Refreshing monitor…',
-      )
-
-      reloadTimer.current = setTimeout(
-        () => {
-          window.location.reload()
-        },
-        1800,
-      )
-    } catch {
-      setState('error')
-      setMessage(
-        'Unable to queue synchronization.',
-      )
-    }
-  }
+  const busy =
+    state === 'refreshing' ||
+    state === 'queueing' ||
+    state === 'queued' ||
+    state === 'running'
 
   return (
     <div className="dss-github-monitor-actions">
       <button
         className="dss-github-monitor-button dss-github-monitor-button--secondary"
         type="button"
-        onClick={() =>
-          window.location.reload()
-        }
-        disabled={state === 'queueing'}
+        onClick={onRefresh}
+        disabled={busy}
       >
-        Refresh status
+        {state === 'refreshing'
+          ? 'Refreshing…'
+          : 'Refresh status'}
       </button>
 
       <button
-        className="dss-github-monitor-button"
+        className="dss-github-monitor-button dss-github-monitor-button--primary"
         type="button"
-        onClick={
-          queueSynchronization
-        }
-        disabled={
-          state === 'queueing' ||
-          state === 'queued'
-        }
+        onClick={onRegenerate}
+        disabled={busy}
       >
         {state === 'queueing'
           ? 'Queueing…'
           : state === 'queued'
             ? 'Queued'
-            : 'Regenerate cache'}
+            : state === 'running'
+              ? 'Synchronizing…'
+              : 'Regenerate cache'}
       </button>
 
       <span

@@ -1,11 +1,15 @@
 import type {
   GitHubFeedCacheState,
 } from '../payload/read.js'
+import type {
+  GitHubFeedRuntimeTrigger,
+} from '../payload/state.js'
 
 export type GitHubFeedAdminJobStatus =
   | 'queued'
   | 'running'
   | 'success'
+  | 'skipped'
   | 'error'
 
 export type GitHubFeedAdminEventLevel =
@@ -29,7 +33,12 @@ export interface GitHubFeedAdminJob {
   createdAt: string | null
   completedAt: string | null
   totalTried: number
-  events: readonly GitHubFeedAdminEvent[]
+  durationMs: number | null
+  trigger:
+    | GitHubFeedRuntimeTrigger
+    | null
+  events:
+    readonly GitHubFeedAdminEvent[]
 }
 
 export interface GitHubFeedAdminStatus {
@@ -46,6 +55,7 @@ export interface GitHubFeedAdminStatus {
     nextSyncAt: string | null
     warnings: readonly string[]
   }
-  jobs: readonly GitHubFeedAdminJob[]
+  jobs:
+    readonly GitHubFeedAdminJob[]
   jobsAvailable: boolean
 }

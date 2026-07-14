@@ -9,8 +9,11 @@ import {
   readGitHubFeed,
 } from '../payload/read.js'
 import {
-  RegenerateGitHubFeedButton,
-} from './RegenerateButton.js'
+  readGitHubFeedRuntimeState,
+} from '../payload/state.js'
+import {
+  GitHubFeedMonitorClient,
+} from './GitHubFeedMonitorClient.js'
 import type {
   GitHubFeedAdminEvent,
   GitHubFeedAdminJob,
@@ -20,11 +23,13 @@ import type {
 
 export interface GitHubFeedMonitorProps {
   payload: Payload
+  settingsSlug?: string
   cacheSlug?: string
   cacheKey?: string
   taskSlug?: string
   syncEndpointPath?: string
   jobLimit?: number
+  pollIntervalMs?: number
   title?: string
 }
 
@@ -46,6 +51,8 @@ interface JobsPayloadClient {
   }>
 }
 
+const DEFAULT_SETTINGS_SLUG =
+  'dss-github-feed-settings'
 const DEFAULT_CACHE_SLUG =
   'dss-github-feed-cache'
 const DEFAULT_CACHE_KEY =
@@ -59,6 +66,8 @@ const MAX_JOB_LIMIT = 20
 
 export async function GitHubFeedMonitor({
   payload,
+  settingsSlug =
+    DEFAULT_SETTINGS_SLUG,
   cacheSlug =
     DEFAULT_CACHE_SLUG,
   cacheKey =
@@ -69,203 +78,50 @@ export async function GitHubFeedMonitor({
     DEFAULT_SYNC_ENDPOINT_PATH,
   jobLimit =
     DEFAULT_JOB_LIMIT,
+  pollIntervalMs = 1500,
   title = 'GitHub Feed Monitor',
 }: GitHubFeedMonitorProps): Promise<ReactNode> {
   const status =
     await loadGitHubFeedAdminStatus({
       payload,
+      settingsSlug,
       cacheSlug,
       cacheKey,
       taskSlug,
       jobLimit,
     })
-  const endpointURL =
+  const syncEndpointURL =
     buildPayloadEndpointURL(
       payload,
       syncEndpointPath,
     )
-  const latestJob =
-    status.jobs[0] ?? null
-  const events =
-    status.jobs.flatMap(
-      (job) => job.events,
+  const settingsEndpointURL =
+    buildPayloadEndpointURL(
+      payload,
+      `/globals/${settingsSlug}`,
     )
 
   return (
-    <section
-      className="dss-github-monitor"
-      aria-label={title}
-    >
-      <header className="dss-github-monitor-header">
-        <div>
-          <p className="dss-github-monitor-eyebrow">
-            DSS Feeds
-          </p>
-          <h2 className="dss-github-monitor-title">
-            {title}
-          </h2>
-          <p className="dss-github-monitor-description">
-            Operational status is read
-            from the local Payload cache
-            and job queue. This panel does
-            not contact GitHub.
-          </p>
-        </div>
-
-        <StatusBadge
-          state={
-            latestJob?.status ===
-              'running'
-              ? 'running'
-              : status.cache.state
-          }
-        />
-      </header>
-
-      <dl className="dss-github-monitor-metrics">
-        <Metric
-          label="Cached commits"
-          value={String(
-            status.cache
-              .cachedCommitCount,
-          )}
-        />
-        <Metric
-          label="Last generated"
-          value={formatDate(
-            status.cache.generatedAt,
-          )}
-        />
-        <Metric
-          label="Next sync"
-          value={formatDate(
-            status.cache.nextSyncAt,
-          )}
-        />
-        <Metric
-          label="Last job"
-          value={
-            latestJob
-              ? formatJobStatus(
-                  latestJob.status,
-                )
-              : 'No runs'
-          }
-        />
-        <Metric
-          label="Attempts"
-          value={
-            latestJob
-              ? String(
-                  latestJob.totalTried,
-                )
-              : '—'
-          }
-        />
-        <Metric
-          label="Adapter"
-          value={
-            status.cache
-              .adapterVersion ?? '—'
-          }
-        />
-      </dl>
-
-      {status.cache.warnings.length >
-        0 && (
-        <div
-          className="dss-github-monitor-notice"
-          role="status"
-        >
-          {status.cache.warnings.map(
-            (warning) => (
-              <p key={warning}>
-                {warning}
-              </p>
-            ),
-          )}
-        </div>
-      )}
-
-      <RegenerateGitHubFeedButton
-        endpointURL={endpointURL}
-      />
-
-      <div className="dss-github-monitor-console">
-        <div className="dss-github-monitor-console-header">
-          <span>
-            Synchronization log
-          </span>
-          <span>
-            {status.jobsAvailable
-              ? `${status.jobs.length} recent job${
-                  status.jobs.length ===
-                  1
-                    ? ''
-                    : 's'
-                }`
-              : 'Job history unavailable'}
-          </span>
-        </div>
-
-        <div
-          className="dss-github-monitor-console-body"
-          aria-live="polite"
-        >
-          {events.length > 0 ? (
-            events.map(
-              (event, index) => (
-                <div
-                  className="dss-github-monitor-log-row"
-                  key={`${event.timestamp}-${index}`}
-                >
-                  <time
-                    className="dss-github-monitor-log-time"
-                    dateTime={
-                      event.timestamp
-                    }
-                  >
-                    {formatConsoleTime(
-                      event.timestamp,
-                    )}
-                  </time>
-                  <span
-                    className={`dss-github-monitor-log-level dss-github-monitor-log-level--${event.level}`}
-                  >
-                    {event.level}
-                  </span>
-                  <span className="dss-github-monitor-log-message">
-                    {event.message}
-                    {event.context && (
-                      <code className="dss-github-monitor-log-context">
-                        {safeStringify(
-                          event.context,
-                        )}
-                      </code>
-                    )}
-                  </span>
-                </div>
-              ),
-            )
-          ) : (
-            <p className="dss-github-monitor-empty">
-              No synchronization events yet.
-            </p>
-          )}
-        </div>
-      </div>
-
-      <p className="dss-github-monitor-checked">
-        Checked{' '}
-        {formatDate(status.checkedAt)}
-      </p>
-    </section>
+    <GitHubFeedMonitorClient
+      initialStatus={status}
+      syncEndpointURL={
+        syncEndpointURL
+      }
+      settingsEndpointURL={
+        settingsEndpointURL
+      }
+      title={title}
+      pollIntervalMs={
+        pollIntervalMs
+      }
+    />
   )
 }
 
 export async function loadGitHubFeedAdminStatus(
   options: {
     payload: Payload
+    settingsSlug?: string
     cacheSlug: string
     cacheKey: string
     taskSlug: string
@@ -280,18 +136,29 @@ export async function loadGitHubFeedAdminStatus(
       options.jobLimit,
     )
 
-  const cache =
-    await readGitHubFeed({
-      payload: options.payload,
-      cacheSlug:
-        options.cacheSlug,
-      cacheKey: options.cacheKey,
-      commitCount: 100,
-      now,
-    })
+  const [cache, runtime] =
+    await Promise.all([
+      readGitHubFeed({
+        payload:
+          options.payload,
+        cacheSlug:
+          options.cacheSlug,
+        cacheKey:
+          options.cacheKey,
+        commitCount: 100,
+        now,
+      }),
+      readGitHubFeedRuntimeState({
+        payload:
+          options.payload,
+        settingsSlug:
+          options.settingsSlug,
+      }),
+    ])
 
-  let jobs: GitHubFeedAdminJob[] = []
-  let jobsAvailable = true
+  let queueJobs:
+    GitHubFeedAdminJob[] = []
+  let queueAvailable = true
 
   try {
     const client =
@@ -313,30 +180,80 @@ export async function loadGitHubFeedAdminStatus(
         overrideAccess: true,
       })
 
-    jobs = result.docs.flatMap(
-      (document) => {
-        const job =
-          parseJobDocument(
-            document,
-            options.taskSlug,
-          )
+    queueJobs =
+      result.docs.flatMap(
+        (document) => {
+          const job =
+            parseJobDocument(
+              document,
+              options.taskSlug,
+            )
 
-        return job ? [job] : []
-      },
-    )
+          return job
+            ? [job]
+            : []
+        },
+      )
   } catch {
-    jobsAvailable = false
+    queueAvailable = false
   }
 
+  const activeQueueJob =
+    queueJobs.find(
+      (job) =>
+        job.status ===
+          'queued' ||
+        job.status ===
+          'running',
+    ) ?? null
+  const persistentJob =
+    runtime &&
+    runtime.status !== 'idle' &&
+    runtime.runId
+      ? {
+          id: runtime.runId,
+          status:
+            runtime.status,
+          createdAt:
+            runtime.lastAttemptAt,
+          completedAt:
+            runtime.completedAt,
+          totalTried:
+            runtime.attemptCount,
+          durationMs:
+            runtime.durationMs,
+          trigger:
+            runtime.trigger,
+          events:
+            runtime.events,
+        }
+      : null
+
+  const jobs =
+    activeQueueJob
+      ? [
+          activeQueueJob,
+          ...(persistentJob &&
+          persistentJob.id !==
+            activeQueueJob.id
+            ? [persistentJob]
+            : []),
+        ]
+      : persistentJob
+        ? [persistentJob]
+        : queueJobs
+
   return {
-    checkedAt: now.toISOString(),
+    checkedAt:
+      now.toISOString(),
     cache: {
       state: cache.state,
       renderable:
         cache.renderable,
       cachedCommitCount:
         cache.cachedCommitCount,
-      checksum: cache.checksum,
+      checksum:
+        cache.checksum,
       adapterVersion:
         cache.adapterVersion,
       generatedAt:
@@ -347,10 +264,13 @@ export async function loadGitHubFeedAdminStatus(
         cache.staleUntil,
       nextSyncAt:
         cache.nextSyncAt,
-      warnings: cache.warnings,
+      warnings:
+        cache.warnings,
     },
     jobs,
-    jobsAvailable,
+    jobsAvailable:
+      Boolean(runtime) ||
+      queueAvailable,
   }
 }
 
@@ -363,7 +283,9 @@ function parseJobDocument(
   }
 
   const id =
-    readStringOrNumber(value.id)
+    readStringOrNumber(
+      value.id,
+    )
 
   if (!id) {
     return null
@@ -372,7 +294,9 @@ function parseJobDocument(
   const createdAt =
     readDate(value.createdAt)
   const completedAt =
-    readDate(value.completedAt)
+    readDate(
+      value.completedAt,
+    )
   const hasError =
     value.hasError === true
   const processing =
@@ -387,24 +311,30 @@ function parseJobDocument(
       processing,
       completedAt,
     })
-
   const events = [
-    ...readJobLog(value.log),
+    ...readJobLog(
+      value.log,
+    ),
     ...readTaskOutputEvents(
       value.taskStatus,
       taskSlug,
     ),
   ].sort(
     (left, right) =>
-      Date.parse(left.timestamp) -
-      Date.parse(right.timestamp),
+      Date.parse(
+        left.timestamp,
+      ) -
+      Date.parse(
+        right.timestamp,
+      ),
   )
 
   if (
     hasError &&
     !events.some(
       (event) =>
-        event.level === 'error',
+        event.level ===
+        'error',
     )
   ) {
     events.push({
@@ -414,7 +344,8 @@ function parseJobDocument(
       timestamp:
         completedAt ??
         createdAt ??
-        new Date(0).toISOString(),
+        new Date(0)
+          .toISOString(),
     })
   }
 
@@ -424,6 +355,12 @@ function parseJobDocument(
     createdAt,
     completedAt,
     totalTried,
+    durationMs:
+      calculateDuration(
+        createdAt,
+        completedAt,
+      ),
+    trigger: null,
     events,
   }
 }
@@ -435,30 +372,38 @@ function readJobLog(
     return []
   }
 
-  return value.flatMap((entry) => {
-    if (!isRecord(entry)) {
-      return []
-    }
+  return value.flatMap(
+    (entry) => {
+      if (!isRecord(entry)) {
+        return []
+      }
 
-    const message =
-      readNonEmptyString(
-        entry.message,
-      )
-    const timestamp =
-      readDate(entry.createdAt)
+      const message =
+        readNonEmptyString(
+          entry.message,
+        )
+      const timestamp =
+        readDate(
+          entry.createdAt,
+        )
 
-    if (!message || !timestamp) {
-      return []
-    }
+      if (
+        !message ||
+        !timestamp
+      ) {
+        return []
+      }
 
-    return [
-      {
-        level: 'info' as const,
-        message,
-        timestamp,
-      },
-    ]
-  })
+      return [
+        {
+          level:
+            'info' as const,
+          message,
+          timestamp,
+        },
+      ]
+    },
+  )
 }
 
 function readTaskOutputEvents(
@@ -503,48 +448,50 @@ function parseOutputEvents(
     return []
   }
 
-  return value.flatMap((entry) => {
-    if (!isRecord(entry)) {
-      return []
-    }
+  return value.flatMap(
+    (entry) => {
+      if (!isRecord(entry)) {
+        return []
+      }
 
-    const level =
-      readEventLevel(
-        entry.level,
-      )
-    const message =
-      readNonEmptyString(
-        entry.message,
-      )
-    const timestamp =
-      readDate(
-        entry.timestamp,
-      )
-
-    if (
-      !level ||
-      !message ||
-      !timestamp
-    ) {
-      return []
-    }
-
-    return [
-      {
-        level,
-        message,
-        timestamp,
-        ...(isRecord(
-          entry.context,
+      const level =
+        readEventLevel(
+          entry.level,
         )
-          ? {
-              context:
-                entry.context,
-            }
-          : {}),
-      },
-    ]
-  })
+      const message =
+        readNonEmptyString(
+          entry.message,
+        )
+      const timestamp =
+        readDate(
+          entry.timestamp,
+        )
+
+      if (
+        !level ||
+        !message ||
+        !timestamp
+      ) {
+        return []
+      }
+
+      return [
+        {
+          level,
+          message,
+          timestamp,
+          ...(isRecord(
+            entry.context,
+          )
+            ? {
+                context:
+                  entry.context,
+              }
+            : {}),
+        },
+      ]
+    },
+  )
 }
 
 function resolveJobStatus(
@@ -569,38 +516,6 @@ function resolveJobStatus(
   return 'queued'
 }
 
-function StatusBadge({
-  state,
-}: {
-  state: string
-}) {
-  return (
-    <span
-      className={`dss-github-monitor-status dss-github-monitor-status--${state}`}
-    >
-      {state.replace(
-        /_/g,
-        ' ',
-      )}
-    </span>
-  )
-}
-
-function Metric({
-  label,
-  value,
-}: {
-  label: string
-  value: string
-}) {
-  return (
-    <div className="dss-github-monitor-metric">
-      <dt>{label}</dt>
-      <dd>{value}</dd>
-    </div>
-  )
-}
-
 function buildPayloadEndpointURL(
   payload: Payload,
   endpointPath: string,
@@ -622,19 +537,21 @@ function joinURLParts(
 ): string {
   return parts
     .filter(Boolean)
-    .map((part, index) => {
-      if (index === 0) {
-        return part.replace(
-          /\/$/,
-          '',
-        )
-      }
+    .map(
+      (part, index) => {
+        if (index === 0) {
+          return part.replace(
+            /\/$/,
+            '',
+          )
+        }
 
-      return `/${part.replace(
-        /^\/+|\/+$/g,
-        '',
-      )}`
-    })
+        return `/${part.replace(
+          /^\/+|\/+$/g,
+          '',
+        )}`
+      },
+    )
     .join('')
 }
 
@@ -642,12 +559,16 @@ function normalizeJobLimit(
   value: number | undefined,
 ): number {
   const resolved =
-    value ?? DEFAULT_JOB_LIMIT
+    value ??
+    DEFAULT_JOB_LIMIT
 
   if (
-    !Number.isInteger(resolved) ||
+    !Number.isInteger(
+      resolved,
+    ) ||
     resolved < 1 ||
-    resolved > MAX_JOB_LIMIT
+    resolved >
+      MAX_JOB_LIMIT
   ) {
     throw new RangeError(
       `jobLimit must be an integer between 1 and ${MAX_JOB_LIMIT}.`,
@@ -657,71 +578,33 @@ function normalizeJobLimit(
   return resolved
 }
 
-function formatDate(
-  value: string | null,
-): string {
-  if (!value) {
-    return '—'
+function calculateDuration(
+  startedAt: string | null,
+  completedAt: string | null,
+): number | null {
+  if (
+    !startedAt ||
+    !completedAt
+  ) {
+    return null
   }
 
-  const timestamp =
-    Date.parse(value)
+  const started =
+    Date.parse(startedAt)
+  const completed =
+    Date.parse(completedAt)
 
-  if (Number.isNaN(timestamp)) {
-    return '—'
+  if (
+    Number.isNaN(started) ||
+    Number.isNaN(completed)
+  ) {
+    return null
   }
 
-  return new Intl.DateTimeFormat(
-    'en',
-    {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-      timeZone: 'UTC',
-    },
-  ).format(new Date(timestamp))
-}
-
-function formatConsoleTime(
-  value: string,
-): string {
-  const timestamp =
-    Date.parse(value)
-
-  if (Number.isNaN(timestamp)) {
-    return '--:--:--'
-  }
-
-  return new Intl.DateTimeFormat(
-    'en',
-    {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23',
-      timeZone: 'UTC',
-    },
-  ).format(new Date(timestamp))
-}
-
-function formatJobStatus(
-  value: GitHubFeedAdminJobStatus,
-): string {
-  return (
-    value[0]!.toUpperCase() +
-    value.slice(1)
+  return Math.max(
+    0,
+    completed - started,
   )
-}
-
-function safeStringify(
-  value: Readonly<
-    Record<string, unknown>
-  >,
-): string {
-  try {
-    return JSON.stringify(value)
-  } catch {
-    return '{}'
-  }
 }
 
 function readEventLevel(
@@ -739,14 +622,16 @@ function readStringOrNumber(
   value: unknown,
 ): string | null {
   if (
-    typeof value === 'string' &&
+    typeof value ===
+      'string' &&
     value.length > 0
   ) {
     return value
   }
 
   if (
-    typeof value === 'number' &&
+    typeof value ===
+      'number' &&
     Number.isFinite(value)
   ) {
     return String(value)
@@ -758,7 +643,8 @@ function readStringOrNumber(
 function readNonEmptyString(
   value: unknown,
 ): string | null {
-  return typeof value === 'string' &&
+  return typeof value ===
+    'string' &&
     value.trim().length > 0
     ? value.trim()
     : null
@@ -777,7 +663,9 @@ function readDate(
   const timestamp =
     Date.parse(raw)
 
-  return Number.isNaN(timestamp)
+  return Number.isNaN(
+    timestamp,
+  )
     ? null
     : new Date(
         timestamp,
@@ -787,7 +675,8 @@ function readDate(
 function readNonNegativeInteger(
   value: unknown,
 ): number {
-  return typeof value === 'number' &&
+  return typeof value ===
+    'number' &&
     Number.isInteger(value) &&
     value >= 0
     ? value
@@ -798,7 +687,8 @@ function isRecord(
   value: unknown,
 ): value is Record<string, unknown> {
   return (
-    typeof value === 'object' &&
+    typeof value ===
+      'object' &&
     value !== null
   )
 }
