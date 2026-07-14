@@ -51,6 +51,54 @@ describe('createXRssSource', () => {
     ])
   })
 
+  it('uses browser-compatible headers for Nitter feeds', async () => {
+    let requestHeaders = new Headers()
+
+    const source = createXRssSource({
+      provider: 'nitter',
+      baseUrl: 'https://nitter.example',
+      fetch: async (_input, init) => {
+        requestHeaders = new Headers(init?.headers)
+
+        return requestHeaders
+          .get('user-agent')
+          ?.startsWith('Mozilla/5.0')
+          ? xmlResponse(nitterFeed())
+          : new Response('', { status: 200 })
+      },
+    })
+
+    const posts = await collectXPosts(source, {
+      username: 'clearfixx',
+    })
+
+    expect(posts).toHaveLength(1)
+    expect(requestHeaders.get('user-agent')).toBe(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    )
+    expect(requestHeaders.get('accept-language')).toBe(
+      'en-US,en;q=0.9',
+    )
+  })
+
+  it('reports an explicit empty response from an RSS bridge', async () => {
+    const source = createXRssSource({
+      provider: 'nitter',
+      baseUrl: 'https://nitter.example',
+      fetch: async () => new Response('', { status: 200 }),
+    })
+
+    await expect(
+      collectXPosts(source, { username: 'clearfixx' }),
+    ).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+      message:
+        'X RSS source "x-rss-nitter" returned an empty response.',
+      sourceId: 'x-rss-nitter',
+      status: 200,
+    })
+  })
+
   it('builds the RSSHub route and normalizes Atom entries', async () => {
     const calls: URL[] = []
     const source = createXRssSource({

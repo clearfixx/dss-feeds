@@ -8,6 +8,8 @@ import {
 } from '../types.js'
 
 const DEFAULT_MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+const DEFAULT_RSS_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+const DEFAULT_ACCEPT_LANGUAGE = 'en-US,en;q=0.9'
 const MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 const MAX_FEED_ITEMS = 200
 const X_ID_PATTERN = /^[0-9]{1,19}$/
@@ -148,6 +150,8 @@ async function requestXml(options: RequestXmlOptions): Promise<string> {
     headers: {
       accept:
         'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.1',
+      'accept-language': DEFAULT_ACCEPT_LANGUAGE,
+      'user-agent': DEFAULT_RSS_USER_AGENT,
       ...options.headers,
     },
     signal: options.signal,
@@ -188,7 +192,18 @@ async function requestXml(options: RequestXmlOptions): Promise<string> {
 
   const xml = new TextDecoder('utf-8', { fatal: false }).decode(bytes).trim()
 
-  if (xml.length === 0 || XML_DANGEROUS_DECLARATION_PATTERN.test(xml)) {
+  if (xml.length === 0) {
+    throw new XFeedError(
+      'INVALID_RESPONSE',
+      `X RSS source "${options.sourceId}" returned an empty response.`,
+      {
+        sourceId: options.sourceId,
+        status: response.status,
+      },
+    )
+  }
+
+  if (XML_DANGEROUS_DECLARATION_PATTERN.test(xml)) {
     throw invalidResponse(options.sourceId, response.status)
   }
 
