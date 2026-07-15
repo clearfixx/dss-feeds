@@ -9,8 +9,10 @@ DSS Feeds owns its provider integration, normalization, cache lifecycle,
 Payload administration, and neutral presentation components.
 
 The project does not fork, wrap, or depend on third-party social-feed
-plugins. Provider packages communicate with official platform HTTP APIs
-through small internal clients.
+plugins. Provider packages communicate with platform HTTP interfaces through
+small internal clients. Official APIs are preferred; explicitly experimental
+sources are isolated, documented, server-only, and may stop working without
+notice.
 
 Runtime components never inject tracking, attribution, branding, hidden
 links, or provider requests into a visitor's page.
