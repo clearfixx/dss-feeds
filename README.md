@@ -19,18 +19,20 @@ links, or provider requests into a visitor's page.
 
     packages/
     ├── github-feed/
-    └── x-feed/
+    ├── x-feed/
+    └── instagram-feed/
 
 Current packages:
 
     @dss-feeds/github-feed
     @dss-feeds/x-feed
-
-Planned packages:
-
     @dss-feeds/instagram-feed
 
 Shared code will be extracted only after real duplication appears across at least two production integrations.
+
+## Admin design boundary
+
+All package-owned Payload Admin components use neutral Payload theme tokens and CMS-style surfaces. Portfolio-specific classes, colors, effects, and presentation remain in the consuming application.
 
 ## Commands
 

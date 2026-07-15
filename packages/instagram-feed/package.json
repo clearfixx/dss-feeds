@@ -1,0 +1,48 @@
+{
+  "name": "@dss-feeds/instagram-feed",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Owned cache-first Instagram media feed integration.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": ["./styles.css", "./admin.css"],
+  "files": ["dist", "styles.css", "admin.css"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./payload": {
+      "types": "./dist/payload/index.d.ts",
+      "import": "./dist/payload/index.js",
+      "default": "./dist/payload/index.js"
+    },
+    "./admin": {
+      "types": "./dist/admin/index.d.ts",
+      "import": "./dist/admin/index.js",
+      "default": "./dist/admin/index.js"
+    },
+    "./styles.css": "./styles.css",
+    "./admin.css": "./admin.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "payload": ">=3.85.0 <4",
+    "react": ">=18.3.0 <20"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "payload": "3.85.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "engines": {"node": ">=20.9.0"},
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}

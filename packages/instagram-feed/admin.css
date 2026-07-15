@@ -1,4 +1,4 @@
-.dss-github-monitor {
+.dss-instagram-monitor {
   --dss-admin-border: var(--theme-elevation-150, #d7d7d7);
   --dss-admin-surface: var(--theme-elevation-0, #ffffff);
   --dss-admin-surface-muted: var(--theme-elevation-50, #f5f5f5);
@@ -19,22 +19,22 @@
   background: var(--dss-admin-surface);
 }
 
-.dss-github-monitor-header {
+.dss-instagram-monitor-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.dss-github-monitor-eyebrow,
-.dss-github-monitor-title,
-.dss-github-monitor-description,
-.dss-github-monitor-checked,
-.dss-github-monitor-empty {
+.dss-instagram-monitor-eyebrow,
+.dss-instagram-monitor-title,
+.dss-instagram-monitor-description,
+.dss-instagram-monitor-checked,
+.dss-instagram-monitor-empty {
   margin: 0;
 }
 
-.dss-github-monitor-eyebrow {
+.dss-instagram-monitor-eyebrow {
   margin-block-end: 0.25rem;
   color: var(--dss-admin-muted);
   font-size: 0.6875rem;
@@ -43,12 +43,12 @@
   text-transform: uppercase;
 }
 
-.dss-github-monitor-title {
+.dss-instagram-monitor-title {
   font-size: 1.125rem;
   line-height: 1.3;
 }
 
-.dss-github-monitor-description {
+.dss-instagram-monitor-description {
   max-width: 48rem;
   margin-block-start: 0.35rem;
   color: var(--dss-admin-muted);
@@ -56,7 +56,7 @@
   line-height: 1.5;
 }
 
-.dss-github-monitor-status {
+.dss-instagram-monitor-status {
   flex: 0 0 auto;
   padding: 0.25rem 0.5rem;
   color: var(--dss-admin-muted);
@@ -69,40 +69,40 @@
   text-transform: uppercase;
 }
 
-.dss-github-monitor-status--fresh,
-.dss-github-monitor-status--success {
+.dss-instagram-monitor-status--fresh,
+.dss-instagram-monitor-status--success {
   color: var(--dss-admin-success);
   border-color: currentColor;
 }
 
-.dss-github-monitor-status--queued,
-.dss-github-monitor-status--running {
+.dss-instagram-monitor-status--queued,
+.dss-instagram-monitor-status--running {
   color: var(--dss-admin-text);
   border-color: var(--dss-admin-muted);
 }
 
-.dss-github-monitor-status--stale,
-.dss-github-monitor-status--warning,
-.dss-github-monitor-status--skipped {
+.dss-instagram-monitor-status--stale,
+.dss-instagram-monitor-status--warning,
+.dss-instagram-monitor-status--skipped {
   color: var(--dss-admin-warning);
   border-color: currentColor;
 }
 
-.dss-github-monitor-status--expired,
-.dss-github-monitor-status--unavailable,
-.dss-github-monitor-status--error {
+.dss-instagram-monitor-status--expired,
+.dss-instagram-monitor-status--unavailable,
+.dss-instagram-monitor-status--error {
   color: var(--dss-admin-error);
   border-color: currentColor;
 }
 
-.dss-github-monitor-metrics {
+.dss-instagram-monitor-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
   gap: 0.5rem;
   margin: 0;
 }
 
-.dss-github-monitor-metric {
+.dss-instagram-monitor-metric {
   min-width: 0;
   padding: 0.75rem;
   border: 1px solid var(--dss-admin-border);
@@ -110,7 +110,7 @@
   background: var(--dss-admin-surface-muted);
 }
 
-.dss-github-monitor-metric dt {
+.dss-instagram-monitor-metric dt {
   margin-block-end: 0.25rem;
   color: var(--dss-admin-muted);
   font-size: 0.6875rem;
@@ -119,13 +119,13 @@
   text-transform: uppercase;
 }
 
-.dss-github-monitor-metric dd {
+.dss-instagram-monitor-metric dd {
   margin: 0;
   overflow-wrap: anywhere;
   font-size: 0.8125rem;
 }
 
-.dss-github-monitor-notice {
+.dss-instagram-monitor-notice {
   padding: 0.75rem;
   color: var(--dss-admin-warning);
   border: 1px solid var(--dss-admin-border);
@@ -134,18 +134,18 @@
   background: var(--dss-admin-surface-muted);
 }
 
-.dss-github-monitor-notice p {
+.dss-instagram-monitor-notice p {
   margin: 0;
 }
 
-.dss-github-monitor-actions {
+.dss-instagram-monitor-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
 }
 
-.dss-github-monitor-button {
+.dss-instagram-monitor-button {
   min-height: 2.25rem;
   padding: 0.45rem 0.8rem;
   color: var(--dss-admin-surface);
@@ -158,39 +158,39 @@
   font-weight: 600;
 }
 
-.dss-github-monitor-button:hover:not(:disabled) {
+.dss-instagram-monitor-button:hover:not(:disabled) {
   opacity: 0.82;
 }
 
-.dss-github-monitor-button--secondary {
+.dss-instagram-monitor-button--secondary {
   color: var(--dss-admin-text);
   border-color: var(--dss-admin-border);
   background: var(--dss-admin-surface);
 }
 
-.dss-github-monitor-button--secondary:hover:not(:disabled) {
+.dss-instagram-monitor-button--secondary:hover:not(:disabled) {
   border-color: var(--dss-admin-muted);
   background: var(--dss-admin-surface-muted);
   opacity: 1;
 }
 
-.dss-github-monitor-button:disabled {
+.dss-instagram-monitor-button:disabled {
   cursor: wait;
   opacity: 0.55;
 }
 
-.dss-github-monitor-button:focus-visible {
+.dss-instagram-monitor-button:focus-visible {
   outline: 2px solid var(--dss-admin-text);
   outline-offset: 2px;
 }
 
-.dss-github-monitor-action-message {
+.dss-instagram-monitor-action-message {
   min-height: 1.2em;
   color: var(--dss-admin-muted);
   font-size: 0.75rem;
 }
 
-.dss-github-monitor-console {
+.dss-instagram-monitor-console {
   overflow: hidden;
   color: var(--dss-admin-text);
   border: 1px solid var(--dss-admin-border);
@@ -198,7 +198,7 @@
   background: var(--dss-admin-surface-muted);
 }
 
-.dss-github-monitor-console-header {
+.dss-instagram-monitor-console-header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -212,7 +212,7 @@
   text-transform: uppercase;
 }
 
-.dss-github-monitor-console-body {
+.dss-instagram-monitor-console-body {
   max-height: 18rem;
   overflow: auto;
   padding: 0.55rem 0.75rem;
@@ -221,7 +221,7 @@
   line-height: 1.55;
 }
 
-.dss-github-monitor-log-row {
+.dss-instagram-monitor-log-row {
   display: grid;
   grid-template-columns: 5rem 4.5rem minmax(0, 1fr);
   gap: 0.6rem;
@@ -229,65 +229,65 @@
   border-block-end: 1px solid var(--dss-admin-border);
 }
 
-.dss-github-monitor-log-row:last-child {
+.dss-instagram-monitor-log-row:last-child {
   border-block-end: 0;
 }
 
-.dss-github-monitor-log-time,
-.dss-github-monitor-log-context,
-.dss-github-monitor-empty {
+.dss-instagram-monitor-log-time,
+.dss-instagram-monitor-log-context,
+.dss-instagram-monitor-empty {
   color: var(--dss-admin-muted);
 }
 
-.dss-github-monitor-log-level {
+.dss-instagram-monitor-log-level {
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.dss-github-monitor-log-level--info {
+.dss-instagram-monitor-log-level--info {
   color: var(--dss-admin-text);
 }
 
-.dss-github-monitor-log-level--success {
+.dss-instagram-monitor-log-level--success {
   color: var(--dss-admin-success);
 }
 
-.dss-github-monitor-log-level--warning {
+.dss-instagram-monitor-log-level--warning {
   color: var(--dss-admin-warning);
 }
 
-.dss-github-monitor-log-level--error {
+.dss-instagram-monitor-log-level--error {
   color: var(--dss-admin-error);
 }
 
-.dss-github-monitor-log-message {
+.dss-instagram-monitor-log-message {
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.dss-github-monitor-log-context {
+.dss-instagram-monitor-log-context {
   display: block;
   margin-block-start: 0.15rem;
   white-space: pre-wrap;
 }
 
-.dss-github-monitor-checked {
+.dss-instagram-monitor-checked {
   color: var(--dss-admin-muted);
   font-size: 0.6875rem;
   text-align: right;
 }
 
 @media (max-width: 48rem) {
-  .dss-github-monitor-header,
-  .dss-github-monitor-console-header {
+  .dss-instagram-monitor-header,
+  .dss-instagram-monitor-console-header {
     flex-direction: column;
   }
 
-  .dss-github-monitor-log-row {
+  .dss-instagram-monitor-log-row {
     grid-template-columns: 4.5rem minmax(0, 1fr);
   }
 
-  .dss-github-monitor-log-message {
+  .dss-instagram-monitor-log-message {
     grid-column: 1 / -1;
   }
 }
