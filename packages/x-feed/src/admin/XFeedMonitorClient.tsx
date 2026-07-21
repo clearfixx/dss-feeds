@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import {
   parseXFeedAdminStatus,
 } from './status.js'
@@ -20,6 +20,10 @@ export interface XFeedMonitorClientProps {
 
 const MAX_POLL_DURATION_MS = 60_000
 
+const subscribeToHydration = () => () => undefined
+const getHydratedClientSnapshot = () => true
+const getHydratedServerSnapshot = () => false
+
 export function XFeedMonitorClient({
   initialStatus,
   statusEndpointURL,
@@ -35,6 +39,11 @@ export function XFeedMonitorClient({
   const baselineRunId = useRef(initialStatus.monitor.runId)
   const pollingStartedAt = useRef<number | null>(null)
   const refreshInFlight = useRef(false)
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedClientSnapshot,
+    getHydratedServerSnapshot,
+  )
 
   useEffect(() => {
     if (!polling) return
@@ -199,7 +208,7 @@ export function XFeedMonitorClient({
         />
         <Metric
           label="Last success"
-          value={<LocalDate value={status.monitor.lastSuccessAt} />}
+          value={<LocalDate hydrated={isHydrated} value={status.monitor.lastSuccessAt} />}
         />
         <Metric
           label="Consecutive failures"
@@ -211,7 +220,7 @@ export function XFeedMonitorClient({
         />
         <Metric
           label="Next sync"
-          value={<LocalDate value={status.cache.nextSyncAt} />}
+          value={<LocalDate hydrated={isHydrated} value={status.cache.nextSyncAt} />}
         />
         <Metric
           label="Last duration"
@@ -279,7 +288,7 @@ export function XFeedMonitorClient({
           {status.monitor.history.length > 0 ? (
             status.monitor.history.map((entry, index) => (
               <div className="dss-x-admin__console-line" key={`${entry.timestamp}:${index}`}>
-                <time>{formatConsoleTime(entry.timestamp)}</time>
+                <time>{formatConsoleTime(entry.timestamp, isHydrated)}</time>
                 <span data-level={entry.level}>{entry.level}</span>
                 <p>{entry.message}</p>
                 {entry.context ? <code>{safeStringify(entry.context)}</code> : null}
@@ -292,11 +301,14 @@ export function XFeedMonitorClient({
       </section>
 
       <footer className="dss-x-admin__footer">
-        Checked <LocalDate value={status.checkedAt} />
+        Checked <LocalDate hydrated={isHydrated} value={status.checkedAt} />
         {status.monitor.notificationSuppressedUntil ? (
           <>
             {' · '}Notification cooldown until{' '}
-            <LocalDate value={status.monitor.notificationSuppressedUntil} />
+            <LocalDate
+              hydrated={isHydrated}
+              value={status.monitor.notificationSuppressedUntil}
+            />
           </>
         ) : null}
       </footer>
@@ -355,29 +367,54 @@ function Metric({ label, value }: { label: string; value: ReactNode }) {
   )
 }
 
-function LocalDate({ value }: { value: string | null }) {
-  return <time dateTime={value ?? undefined}>{formatDate(value)}</time>
+function LocalDate({
+  hydrated,
+  value,
+}: {
+  hydrated: boolean
+  value: string | null
+}) {
+  return <time dateTime={value ?? undefined}>{formatDate(value, hydrated)}</time>
 }
 
-function formatDate(value: string | null): string {
+function formatDate(value: string | null, hydrated: boolean): string {
   if (!value) return '—'
+
   const timestamp = Date.parse(value)
+
   if (Number.isNaN(timestamp)) return '—'
+
+  const date = new Date(timestamp)
+
+  if (!hydrated) {
+    const isoValue = date.toISOString()
+
+    return `${isoValue.slice(0, 10)} ${isoValue.slice(11, 16)} UTC`
+  }
+
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  }).format(new Date(timestamp))
+  }).format(date)
 }
 
-function formatConsoleTime(value: string): string {
+function formatConsoleTime(value: string, hydrated: boolean): string {
   const timestamp = Date.parse(value)
+
   if (Number.isNaN(timestamp)) return '--:--:--'
+
+  const date = new Date(timestamp)
+
+  if (!hydrated) {
+    return `${date.toISOString().slice(11, 19)} UTC`
+  }
+
   return new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hourCycle: 'h23',
-  }).format(new Date(timestamp))
+  }).format(date)
 }
 
 function formatDuration(value: number | null): string {
